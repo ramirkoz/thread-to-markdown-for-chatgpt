@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thread to Markdown</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main class="panel">
+    <header>
+      <img src="icons/icon48.png" alt="" width="40" height="40">
+      <div>
+        <h1 data-i18n="popupHeading">Thread to Markdown</h1>
+        <p data-i18n="popupTagline">Save the open conversation as a local Markdown file.</p>
+      </div>
+    </header>
+
+    <section class="privacy" aria-label="Privacy notice">
+      <strong data-i18n="privacyTitle">Private by design</strong>
+      <span data-i18n="privacyText">The page is processed only on your device. Nothing is sent to the developer.</span>
+    </section>
+
+    <button id="export" type="button" data-i18n="exportButton">Export open thread</button>
+    <p id="status" role="status" aria-live="polite" data-i18n="readyStatus">Open a ChatGPT conversation, then export it.</p>
+
+    <footer>
+      <span data-i18n="unofficialNotice">Unofficial extension. Not affiliated with OpenAI.</span>
+    </footer>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>
