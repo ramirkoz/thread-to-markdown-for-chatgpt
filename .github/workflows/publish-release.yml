@@ -1,0 +1,96 @@
+name: Publish extension release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore extension icons
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p extension/icons
+          echo 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAY0lEQVR4nGMUSzX5z0ABYKJEMwMDAwMLMuflrNNEaRJPM8U04OWs0ygS+ACyWoJeIOQqisNg4A1gwSaI7m9kPnpAY3UBrtjAJo7TC+iKcRlK20CE2YovgTEiZyZykjLjgOdGAPBlHPZbuBCKAAAAAElFTkSuQmCC' | base64 -d > extension/icons/icon16.png
+          echo 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAvUlEQVR4nO1WUQ6AIAjF1hnqInWkOpRX8iSeor5qzkBBnbolW18k7/EQQS3HdkFDm1qCDwIAAHPIabUpArKeO+kjFSgFHoulsC5wD4TYS8GxWB8FSoL7MTAlyBJwwK0278clwSZQywaBQWAQCM4C12K9jvk5bwlbAemryP1fVAJuUAnZ5ndATCCWnbRUSQpQICnTM7kEPljq6O73DnBWsifrWPZdr2QoAf9gCaMSyVrJcsEBAgrUsn674DcEbrsMQTZFpBxeAAAAAElFTkSuQmCC' | base64 -d > extension/icons/icon32.png
+          echo 'iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAABE0lEQVR4nO2Z0RGCQAxED4catBEtSYuyJSuxCv3CcW6Ay14SljB533DZTXJwhOF8v35KYE5sAVrSAJs0wGZEb3g/Xx46flweN+j6QfoY9RZeIzUiaqGtxSMxmwYY4pHYqy00twDaoyhoTOgp5C2+J8ZiBepM9IjXrCG9N/x7IA2wSQNs0gCbNMAmDbCBv8j+QY/aa9f3HhRVFbA6nWrWUbeQ1oT2/vB7wMRAbxYtWtCsAqgYq/1j2kJSUZafprkHalrZtR4MuFRgSaTHVMOthWqxXiOZ4+6BOmM9I8ZpDTT7yDwJqoDGhFeM5nidOdwtpZ2AZgW2mIdqYotaiGFCGlP8h2Yi7C+mvXLc90AU0gCb8Aa+VYxRpAwCWegAAAAASUVORK5CYII=' | base64 -d > extension/icons/icon48.png
+          echo 'iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAADOUlEQVR4nO2d0XEbMQwFnzKpwW7ELskuKi2lklThfN2MYluKKIEEwLdbgIXDW+CoG0s6Pb29fAhs+ZFdAOSCAOYggDkIYA4CmIMA5iCAOQhgDgKYgwDmIIA5CGAOApiDAOYggDk/swuQpD+/fmeXkMLz+2t2CTpl/UOIa+iXyJJhuQAEf53VIiwTgODHWCXCkkMg4Y+zqmdTNwDBxzBzG0zbAIQfx8xeThGA8OOZ1VMeBJkTLgDTP48ZvQ09BD5SYIWnYiup0qv0R8FuwR8c1529McM2wOiFuAZ/iaz+pRwCCf8rWT0JEWDEXsK/zEhvom4dvA00Z+khMHv6O5xTnt9flx4MH94A2adYZyJ6v+wWkD39nVjZK84A5iCAOQhgDgKYgwDmIIA5CGAOApiDAOYggDkIYA4CmIMA5iCAOQhgDgKYgwDmIIA5CGAOApiDAOYggDkIYA4CmIMA5iCAOQhgDgKYgwDmpH9J1DWyP3oe+fpVPx1degNUbdoola+jtABS7ebdQvX6ywsAc2khQPUpukSHulsIIPVo5jld6m0jgNSnqV3qlJoJAPG0E6D6dFWv7zPtBJDqNrlqXddoKYBUr9nV6rmVtgJIdZpepY57aC0APE57AbKnL/v1H6W9AFJeCN3DlzYRQFofxg7hSxsJIK0LZZfwpc0EgHG2E2D2dO40/dKGAkjzQtotfGlTAaT4sHYMX9pYALiNrQWImtpdp1/aXADp8fB2Dl8yEEC6P8Tdw5dMBJDGw3QIXzISAL7HSoBbp9pl+iUzAaT/h+sUvmQogHQ5ZLfwpYUCZH/StxOtfj2869R8rrvjdUTUvPQWUG0LHA2sFP7qHlmeAc6pFH4GIQKMNLHaFqjESG+ixE3ZAEjwlayenJ7eXj6i/tg9F+G+grN7lv4lUUcD3ESosgVDN4BU58J2JXpQws8AbpO8khm9tX8b6M4UAdgC8czq6bQNgARxzOxl+CHwOzgY3seKIVpyBmAbjLOqZ0s2wDlsg+usHpblAhwgwr9kbck0Ac5xlaHCrbGEAJAHD4LMQQBzEMAcBDAHAcxBAHMQwBwEMAcBzEEAcxDAHAQwBwHMQQBzEMCcv4ghu5PXB8C+AAAAAElFTkSuQmCC' | base64 -d > extension/icons/icon128.png
+
+          if ! git ls-files --error-unmatch extension/icons/icon128.png >/dev/null 2>&1; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add extension/icons
+            git commit -m 'Add extension icons'
+            git push origin HEAD:main
+          fi
+
+      - name: Validate extension
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path('extension/manifest.json').read_text())
+          assert manifest['manifest_version'] == 3
+          assert manifest['version'] == '1.4.0'
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
+          for path in [
+              'extension/background.js', 'extension/popup.html',
+              'extension/popup.css', 'extension/popup.js',
+              'extension/icons/icon128.png',
+              'extension/_locales/en/messages.json',
+              'extension/_locales/uk/messages.json']:
+              assert Path(path).is_file(), path
+          print('Extension validation: PASS')
+          PY
+
+      - name: Build release packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist source-package
+          mkdir -p dist source-package/thread-to-markdown-for-chatgpt-1.4.0
+
+          (cd extension && zip -9 -qr ../dist/thread-to-markdown-for-chatgpt-1.4.0-chrome-web-store.zip .)
+
+          cp -R extension source-package/thread-to-markdown-for-chatgpt-1.4.0/
+          cp README.md PRIVACY.md CHANGELOG.md RELEASE_NOTES.md STORE_LISTING.md STORE_SUBMISSION_CHECKLIST.md LICENSE source-package/thread-to-markdown-for-chatgpt-1.4.0/
+          (cd source-package && zip -9 -qr ../dist/thread-to-markdown-for-chatgpt-1.4.0-source.zip thread-to-markdown-for-chatgpt-1.4.0)
+
+          (cd dist && sha256sum *.zip > SHA256SUMS.txt)
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='v1.4.0'
+          TITLE='Thread to Markdown for ChatGPT 1.4.0'
+
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            git tag -a "$TAG" -m "$TITLE"
+            git push origin "$TAG"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$TITLE" --notes-file RELEASE_NOTES.md --latest
+          else
+            gh release create "$TAG" --title "$TITLE" --notes-file RELEASE_NOTES.md --latest
+          fi
+
+          gh release upload "$TAG" dist/thread-to-markdown-for-chatgpt-1.4.0-chrome-web-store.zip --clobber
+          gh release upload "$TAG" dist/thread-to-markdown-for-chatgpt-1.4.0-source.zip --clobber
+          gh release upload "$TAG" dist/SHA256SUMS.txt --clobber
