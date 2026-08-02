@@ -1,0 +1,41 @@
+{
+  "extensionName": {
+    "message": "Гілка ChatGPT у Markdown"
+  },
+  "extensionDescription": {
+    "message": "Експортує відкриту розмову ChatGPT у приватний локальний Markdown-файл одним натисканням."
+  },
+  "actionTitle": {
+    "message": "Експортувати гілку ChatGPT у Markdown"
+  },
+  "popupHeading": {
+    "message": "Гілка у Markdown"
+  },
+  "popupTagline": {
+    "message": "Збережіть відкриту розмову як локальний Markdown-файл."
+  },
+  "privacyTitle": {
+    "message": "Приватність за замовчуванням"
+  },
+  "privacyText": {
+    "message": "Сторінка обробляється лише на вашому пристрої. Розробнику нічого не надсилається."
+  },
+  "exportButton": {
+    "message": "Експортувати відкриту гілку"
+  },
+  "readyStatus": {
+    "message": "Відкрийте розмову ChatGPT, а потім експортуйте її."
+  },
+  "workingStatus": {
+    "message": "Експорт…"
+  },
+  "wrongPageError": {
+    "message": "Спочатку відкрийте розмову ChatGPT."
+  },
+  "successStatus": {
+    "message": "Збережено: $1"
+  },
+  "unofficialNotice": {
+    "message": "Неофіційне розширення. Не пов’язане з OpenAI."
+  }
+}
