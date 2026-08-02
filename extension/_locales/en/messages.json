@@ -1,0 +1,41 @@
+{
+  "extensionName": {
+    "message": "Thread to Markdown for ChatGPT"
+  },
+  "extensionDescription": {
+    "message": "Export the open ChatGPT conversation to a private local Markdown file in one click."
+  },
+  "actionTitle": {
+    "message": "Export ChatGPT thread to Markdown"
+  },
+  "popupHeading": {
+    "message": "Thread to Markdown"
+  },
+  "popupTagline": {
+    "message": "Save the open conversation as a local Markdown file."
+  },
+  "privacyTitle": {
+    "message": "Private by design"
+  },
+  "privacyText": {
+    "message": "The page is processed only on your device. Nothing is sent to the developer."
+  },
+  "exportButton": {
+    "message": "Export open thread"
+  },
+  "readyStatus": {
+    "message": "Open a ChatGPT conversation, then export it."
+  },
+  "workingStatus": {
+    "message": "Exporting…"
+  },
+  "wrongPageError": {
+    "message": "Open a ChatGPT conversation first."
+  },
+  "successStatus": {
+    "message": "Saved: $1"
+  },
+  "unofficialNotice": {
+    "message": "Unofficial extension. Not affiliated with OpenAI."
+  }
+}
