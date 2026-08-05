@@ -110,14 +110,14 @@ function selectedIndices() {
 
 function updateSelectionState() {
   const selected = selectedIndices().length;
-  selectionCountNode.textContent = formatMessage('selectionCount', [String(selected), String(messages.length)]) || `${selected} of ${messages.length} selected`;
+  selectionCountNode.textContent = formatMessage('selectionCount', [selected, messages.length]) || `${selected} of ${messages.length} selected`;
   exportButton.disabled = selected === 0 || !activeTabId;
-  exportButton.textContent = formatMessage('exportSelectedButton', [String(selected)]) || `Export selected (${selected})`;
+  exportButton.textContent = formatMessage('exportSelectedButton', [selected]) || `Export selected (${selected})`;
 
   if (selected === 0) {
     setStatus(chrome.i18n.getMessage('emptySelectionStatus') || 'Select at least one message.', 'error');
   } else {
-    setStatus(formatMessage('readySelectionStatus', [String(messages.length)]) || `${messages.length} messages found.`);
+    setStatus(formatMessage('readySelectionStatus', [messages.length]) || `${messages.length} messages found.`);
   }
 }
 
@@ -148,11 +148,10 @@ async function exportSelectedMessages() {
 }
 
 function formatMessage(key, values = []) {
-  let message = chrome.i18n.getMessage(key) || '';
-  values.forEach((value, index) => {
-    message = message.replaceAll(`$${index + 1}`, value);
-  });
-  return message;
+  const substitutions = values.map((value) => String(value));
+  return substitutions.length
+    ? chrome.i18n.getMessage(key, substitutions)
+    : chrome.i18n.getMessage(key);
 }
 
 function setStatus(message, className = '') {
