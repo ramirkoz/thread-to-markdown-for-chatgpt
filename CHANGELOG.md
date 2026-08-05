@@ -8,6 +8,8 @@
 - Added selected-message counts and empty-selection protection.
 - Added Markdown, plain-text, and JSON output formats.
 - Added local clipboard copying for the selected messages.
+- Preserved headings, links, emphasis, blockquotes, ordered and unordered lists, nested lists, tables, inline code, and fenced code blocks in Markdown exports.
+- Added the structured Markdown representation to JSON exports while keeping plain text for compatibility.
 - Kept local processing and the existing minimum permissions.
 - Added automated validation for JavaScript, localization, permissions, and package structure.
 - Changed release publishing so it runs only from version tags.
