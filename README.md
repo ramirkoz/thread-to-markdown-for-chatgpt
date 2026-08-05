@@ -4,6 +4,12 @@ A small, privacy-first Chrome extension that exports the ChatGPT conversation cu
 
 > Independent and unofficial. Not affiliated with or endorsed by OpenAI.
 
+## Install from Chrome Web Store
+
+[Install Thread to Markdown for ChatGPT](https://chromewebstore.google.com/detail/thread-to-markdown-for-ch/ingagbhapppiiiccljbhiledobnmhhfb)
+
+Chrome Web Store extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
+
 ## What it does
 
 - Exports user and assistant messages from the open conversation.
@@ -18,10 +24,8 @@ A small, privacy-first Chrome extension that exports the ChatGPT conversation cu
 2. Open `chrome://extensions`.
 3. Enable **Developer mode**.
 4. Select **Load unpacked**.
-5. Choose the extracted extension folder.
+5. Choose the extracted `extension` folder.
 6. Open a ChatGPT conversation and use the extension button.
-
-For Chrome Web Store installation, use the public store listing after approval.
 
 ## Permissions
 
@@ -39,6 +43,7 @@ See [PRIVACY.md](PRIVACY.md). Conversation content stays on the user's device an
 
 ## Version 1.4.0
 
+- Published in the Chrome Web Store.
 - Added a clear export popup with local-processing disclosure.
 - Added English and Ukrainian localization.
 - Removed unnecessary host permissions.
