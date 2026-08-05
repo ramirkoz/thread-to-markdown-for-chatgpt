@@ -124,6 +124,197 @@ function extractThread(options = {}) {
       .replace(/\n{3,}/g, '\n\n')
       .trim();
 
+    const escapeInline = (value) => String(value || '')
+      .replace(/\\/g, '\\\\')
+      .replace(/([*_\[\]<>])/g, '\\$1');
+
+    const escapeMultiline = (value) => cleanText(value)
+      .split('\n')
+      .map((line) => escapeInline(line))
+      .join('\n');
+
+    const normalizeMarkdown = (value) => String(value || '')
+      .replace(/\u00a0/g, ' ')
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+
+    const inlineCode = (value) => {
+      const text = String(value || '').replace(/\n+/g, ' ').trim();
+      if (!text) return '';
+      const runs = text.match(/`+/g) || [];
+      const fence = '`'.repeat(Math.max(1, ...runs.map((run) => run.length + 1)));
+      const padded = text.startsWith('`') || text.endsWith('`') ? ` ${text} ` : text;
+      return `${fence}${padded}${fence}`;
+    };
+
+    const codeFence = (value, language = '') => {
+      const code = String(value || '').replace(/\r\n?/g, '\n').replace(/\n+$/g, '');
+      const runs = code.match(/`{3,}/g) || [];
+      const fence = '`'.repeat(Math.max(3, ...runs.map((run) => run.length + 1)));
+      return `${fence}${language}\n${code}\n${fence}\n\n`;
+    };
+
+    const detectLanguage = (pre) => {
+      const code = pre.querySelector('code');
+      const candidates = [
+        code?.dataset?.language,
+        pre.dataset?.language,
+        code?.className,
+        pre.className
+      ].filter(Boolean).join(' ');
+      const match = candidates.match(/(?:language-|lang-)([a-z0-9_+.-]+)/i);
+      return match ? match[1].toLowerCase() : '';
+    };
+
+    const directChildren = (element, tagName) => [...element.children]
+      .filter((child) => child.tagName === tagName);
+
+    const tableToMarkdown = (table, nodeToMarkdown) => {
+      const rowNodes = [...table.querySelectorAll('tr')];
+      const rows = rowNodes.map((row) => [...row.children]
+        .filter((cell) => cell.tagName === 'TH' || cell.tagName === 'TD')
+        .map((cell) => normalizeMarkdown(nodeToMarkdown(cell, { inline: true }))
+          .replace(/\n+/g, '<br>')
+          .replace(/\|/g, '\\|')
+          .trim()));
+
+      const validRows = rows.filter((row) => row.length);
+      if (!validRows.length) return '';
+
+      const columnCount = Math.max(...validRows.map((row) => row.length));
+      const padded = validRows.map((row) => [
+        ...row,
+        ...Array(Math.max(0, columnCount - row.length)).fill('')
+      ]);
+      const header = padded[0];
+      const body = padded.slice(1);
+      const lines = [
+        `| ${header.join(' | ')} |`,
+        `| ${Array(columnCount).fill('---').join(' | ')} |`,
+        ...body.map((row) => `| ${row.join(' | ')} |`)
+      ];
+      return `${lines.join('\n')}\n\n`;
+    };
+
+    let nodeToMarkdown;
+
+    const listToMarkdown = (list, depth = 0) => {
+      const ordered = list.tagName === 'OL';
+      const start = ordered ? Number.parseInt(list.getAttribute('start') || '1', 10) || 1 : 1;
+      const items = directChildren(list, 'LI');
+      const lines = [];
+
+      items.forEach((item, index) => {
+        const nestedLists = [...item.children]
+          .filter((child) => child.tagName === 'UL' || child.tagName === 'OL');
+        const clone = item.cloneNode(true);
+        [...clone.querySelectorAll('ul, ol')].forEach((nested) => nested.remove());
+
+        const raw = normalizeMarkdown(nodeToMarkdown(clone, { inline: true }))
+          .replace(/\n{2,}/g, '\n')
+          .trim();
+        const marker = ordered ? `${start + index}.` : '-';
+        const indent = '  '.repeat(depth);
+        const continuation = `${indent}  `;
+        const content = raw
+          .split('\n')
+          .map((line, lineIndex) => lineIndex === 0 ? line : `${continuation}${line}`)
+          .join('\n');
+
+        lines.push(`${indent}${marker} ${content}`.trimEnd());
+        nestedLists.forEach((nested) => {
+          lines.push(listToMarkdown(nested, depth + 1).trimEnd());
+        });
+      });
+
+      return `${lines.join('\n')}\n\n`;
+    };
+
+    nodeToMarkdown = (node, context = {}) => {
+      if (!node) return '';
+
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = String(node.nodeValue || '');
+        if (!text.trim()) return /\s/.test(text) ? ' ' : '';
+        return escapeInline(text.replace(/\s+/g, ' '));
+      }
+
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+      const element = node;
+      const tag = element.tagName;
+      const skipTags = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'SVG', 'BUTTON', 'FORM', 'INPUT', 'TEXTAREA', 'SELECT']);
+      if (skipTags.has(tag) || element.getAttribute('aria-hidden') === 'true') return '';
+
+      if (
+        element.classList?.contains('whitespace-pre-wrap') &&
+        !element.querySelector('pre, table, ul, ol')
+      ) {
+        return `${escapeMultiline(element.innerText || element.textContent)}\n\n`;
+      }
+
+      const children = () => [...element.childNodes]
+        .map((child) => nodeToMarkdown(child, context))
+        .join('');
+
+      if (tag === 'BR') return '\n';
+      if (tag === 'HR') return '\n\n---\n\n';
+      if (tag === 'PRE') {
+        const code = element.querySelector('code');
+        return codeFence(code?.textContent || element.textContent || '', detectLanguage(element));
+      }
+      if (tag === 'CODE') return inlineCode(element.textContent || '');
+      if (tag === 'TABLE') return tableToMarkdown(element, nodeToMarkdown);
+      if (tag === 'UL' || tag === 'OL') return listToMarkdown(element, context.listDepth || 0);
+      if (tag === 'LI') return children();
+
+      if (/^H[1-6]$/.test(tag)) {
+        const level = Number(tag.slice(1));
+        return `${'#'.repeat(level)} ${normalizeMarkdown(children())}\n\n`;
+      }
+
+      if (tag === 'BLOCKQUOTE') {
+        const quoted = normalizeMarkdown(children())
+          .split('\n')
+          .map((line) => `> ${line}`)
+          .join('\n');
+        return `${quoted}\n\n`;
+      }
+
+      if (tag === 'STRONG' || tag === 'B') {
+        const value = normalizeMarkdown(children());
+        return value ? `**${value}**` : '';
+      }
+      if (tag === 'EM' || tag === 'I') {
+        const value = normalizeMarkdown(children());
+        return value ? `_${value}_` : '';
+      }
+      if (tag === 'DEL' || tag === 'S') {
+        const value = normalizeMarkdown(children());
+        return value ? `~~${value}~~` : '';
+      }
+      if (tag === 'A') {
+        const label = normalizeMarkdown(children()) || escapeInline(element.textContent || '');
+        const href = element.href || element.getAttribute('href') || '';
+        if (!href || href.startsWith('javascript:')) return label;
+        return `[${label}](${href.replace(/\)/g, '%29')})`;
+      }
+      if (tag === 'IMG') {
+        const alt = cleanText(element.getAttribute('alt') || '');
+        const src = element.currentSrc || element.src || '';
+        return alt && src ? `![${escapeInline(alt)}](${src.replace(/\)/g, '%29')})` : '';
+      }
+
+      const value = children();
+      const blockTags = new Set(['P', 'DIV', 'SECTION', 'ARTICLE', 'MAIN', 'HEADER', 'FOOTER', 'ASIDE', 'FIGURE', 'FIGCAPTION']);
+      if (blockTags.has(tag) && !context.inline) {
+        const normalized = normalizeMarkdown(value);
+        return normalized ? `${normalized}\n\n` : '';
+      }
+      return value;
+    };
+
     const title = cleanText(
       document.querySelector('main h1')?.innerText ||
       document.querySelector('h1')?.innerText ||
@@ -135,6 +326,16 @@ function extractThread(options = {}) {
     const turns = [];
     const seen = new Set();
 
+    const addTurn = (root, role) => {
+      const body = root.querySelector(
+        '.markdown, [class*="markdown"], [class*="prose"], [class*="whitespace-pre-wrap"]'
+      ) || root;
+      const text = cleanText(body.innerText || body.textContent);
+      if (!text) return;
+      const markdown = normalizeMarkdown(nodeToMarkdown(body)) || escapeMultiline(text);
+      turns.push({ role, text, markdown });
+    };
+
     const roleNodes = [...main.querySelectorAll('[data-message-author-role]')];
     for (const roleNode of roleNodes) {
       const root = roleNode.closest(
@@ -142,11 +343,7 @@ function extractThread(options = {}) {
       ) || roleNode;
       if (seen.has(root)) continue;
       seen.add(root);
-
-      const role = roleNode.getAttribute('data-message-author-role') || 'unknown';
-      const body = root.querySelector('.markdown, [class*="markdown"], [class*="prose"], [class*="whitespace-pre-wrap"]') || root;
-      const text = cleanText(body.innerText || body.textContent);
-      if (text) turns.push({ role, text });
+      addTurn(root, roleNode.getAttribute('data-message-author-role') || 'unknown');
     }
 
     if (!turns.length) {
@@ -155,20 +352,23 @@ function extractThread(options = {}) {
       )];
       candidates.forEach((root, index) => {
         if (seen.has(root)) return;
-        const text = cleanText(root.innerText || root.textContent);
-        if (!text) return;
         seen.add(root);
-        turns.push({ role: index % 2 === 0 ? 'user' : 'assistant', text });
+        addTurn(root, index % 2 === 0 ? 'user' : 'assistant');
       });
     }
 
     if (!turns.length) {
       const text = cleanText(main.innerText || main.textContent);
       if (!text) return { ok: false, error: 'No text was found on this page.' };
-      turns.push({ role: 'conversation', text });
+      turns.push({ role: 'conversation', text, markdown: escapeMultiline(text) });
     }
 
-    const records = turns.map((turn, index) => ({ index, role: turn.role, text: turn.text }));
+    const records = turns.map((turn, index) => ({
+      index,
+      role: turn.role,
+      text: turn.text,
+      markdown: turn.markdown
+    }));
     const messages = records.map((record) => ({
       index: record.index,
       role: record.role,
@@ -247,7 +447,7 @@ function extractThread(options = {}) {
         ''
       ];
       for (const record of selectedRecords) {
-        parts.push(`## ${labels[record.role] || labels.unknown}`, '', record.text, '', '---', '');
+        parts.push(`## ${labels[record.role] || labels.unknown}`, '', record.markdown, '', '---', '');
       }
       content = parts.join('\n');
       extension = 'md';
