@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.5.0 — Unreleased
+
+- Added compact previews for detected ChatGPT messages.
+- Added individual message selection before export.
+- Added Select all and Clear controls.
+- Added selected-message counts and empty-selection protection.
+- Kept local processing and the existing minimum permissions.
+- Added automated validation for JavaScript, localization, permissions, and package structure.
+- Changed release publishing so it runs only from version tags.
+
 ## 1.4.0 — 2026-08-02
 
 - Published in the Chrome Web Store.
