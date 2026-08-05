@@ -21,8 +21,22 @@
       <span data-i18n="privacyText">The page is processed only on your device. Nothing is sent to the developer.</span>
     </section>
 
-    <button id="export" type="button" data-i18n="exportButton">Export open thread</button>
-    <p id="status" role="status" aria-live="polite" data-i18n="readyStatus">Open a ChatGPT conversation, then export it.</p>
+    <section id="selection" class="selection" hidden>
+      <div class="selection-head">
+        <div>
+          <strong id="thread-title"></strong>
+          <span id="selection-count"></span>
+        </div>
+        <div class="selection-actions">
+          <button id="select-all" class="text-button" type="button" data-i18n="selectAllButton">Select all</button>
+          <button id="clear-all" class="text-button" type="button" data-i18n="clearAllButton">Clear</button>
+        </div>
+      </div>
+      <div id="messages" class="messages" role="list"></div>
+    </section>
+
+    <button id="export" class="primary" type="button" data-i18n="exportButton" disabled>Export open thread</button>
+    <p id="status" role="status" aria-live="polite" data-i18n="loadingStatus">Reading the open conversation…</p>
 
     <footer>
       <span data-i18n="unofficialNotice">Unofficial extension. Not affiliated with OpenAI.</span>
