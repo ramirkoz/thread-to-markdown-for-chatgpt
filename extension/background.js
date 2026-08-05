@@ -1,9 +1,14 @@
 'use strict';
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message?.type !== 'export-thread') return false;
+  const type = message?.type;
+  if (type !== 'inspect-thread' && type !== 'export-thread') return false;
 
-  exportThread(message.tabId)
+  const task = type === 'inspect-thread'
+    ? inspectThread(message.tabId)
+    : exportThread(message.tabId, message.selectedIndices);
+
+  task
     .then((result) => sendResponse({ ok: true, ...result }))
     .catch((error) => {
       console.error('Thread to Markdown:', error);
@@ -13,22 +18,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
-async function exportThread(tabId) {
-  if (!Number.isInteger(tabId)) {
-    throw new Error('No active tab was found.');
+async function inspectThread(tabId) {
+  await validateChatGptTab(tabId);
+  const result = await readThread(tabId, { includeMarkdown: false });
+
+  if (!result?.ok || !Array.isArray(result.messages) || !result.messages.length) {
+    throw new Error(result?.error || 'The conversation could not be read.');
   }
 
-  const tab = await chrome.tabs.get(tabId);
-  if (!tab?.url || !/^https:\/\/(chatgpt\.com|chat\.openai\.com)\//i.test(tab.url)) {
-    throw new Error('Open a ChatGPT conversation first.');
+  return {
+    title: result.title,
+    messageCount: result.messageCount,
+    messages: result.messages
+  };
+}
+
+async function exportThread(tabId, selectedIndices) {
+  await validateChatGptTab(tabId);
+
+  const normalizedSelection = Array.isArray(selectedIndices)
+    ? [...new Set(selectedIndices.filter(Number.isInteger))]
+    : null;
+
+  if (normalizedSelection && normalizedSelection.length === 0) {
+    throw new Error('Select at least one message.');
   }
 
-  const runs = await chrome.scripting.executeScript({
-    target: { tabId },
-    func: extractThread
+  const result = await readThread(tabId, {
+    includeMarkdown: true,
+    selectedIndices: normalizedSelection
   });
 
-  const result = runs?.[0]?.result;
   if (!result?.ok || !result.markdown || !result.filename) {
     throw new Error(result?.error || 'The conversation could not be read.');
   }
@@ -46,12 +66,33 @@ async function exportThread(tabId) {
 
   return {
     filename: result.filename,
-    messageCount: result.messageCount,
+    messageCount: result.selectedCount,
     downloadId
   };
 }
 
-function extractThread() {
+async function validateChatGptTab(tabId) {
+  if (!Number.isInteger(tabId)) {
+    throw new Error('No active tab was found.');
+  }
+
+  const tab = await chrome.tabs.get(tabId);
+  if (!tab?.url || !/^https:\/\/(chatgpt\.com|chat\.openai\.com)\//i.test(tab.url)) {
+    throw new Error('Open a ChatGPT conversation first.');
+  }
+}
+
+async function readThread(tabId, options) {
+  const runs = await chrome.scripting.executeScript({
+    target: { tabId },
+    func: extractThread,
+    args: [options]
+  });
+
+  return runs?.[0]?.result;
+}
+
+function extractThread(options = {}) {
   try {
     const cleanText = (value) => String(value || '')
       .replace(/\u00a0/g, ' ')
@@ -103,6 +144,33 @@ function extractThread() {
       turns.push({ role: 'conversation', text });
     }
 
+    const messages = turns.map((turn, index) => ({
+      index,
+      role: turn.role,
+      preview: turn.text.length > 180 ? `${turn.text.slice(0, 177)}…` : turn.text
+    }));
+
+    const requested = Array.isArray(options.selectedIndices)
+      ? new Set(options.selectedIndices.filter((index) => Number.isInteger(index) && index >= 0 && index < turns.length))
+      : null;
+    const selectedTurns = requested
+      ? turns.filter((turn, index) => requested.has(index))
+      : turns;
+
+    if (!selectedTurns.length) {
+      return { ok: false, error: 'Select at least one message.' };
+    }
+
+    const response = {
+      ok: true,
+      title,
+      messages,
+      messageCount: turns.length,
+      selectedCount: selectedTurns.length
+    };
+
+    if (!options.includeMarkdown) return response;
+
     const labels = {
       user: 'User',
       assistant: 'ChatGPT',
@@ -119,10 +187,11 @@ function extractThread() {
       '',
       `> Exported: ${exportedAt}`,
       `> Source: ${source}`,
+      `> Messages: ${selectedTurns.length} of ${turns.length}`,
       ''
     ];
 
-    for (const turn of turns) {
+    for (const turn of selectedTurns) {
       parts.push(`## ${labels[turn.role] || labels.unknown}`, '', turn.text, '', '---', '');
     }
 
@@ -134,11 +203,11 @@ function extractThread() {
       .slice(0, 120) || 'chatgpt-thread';
 
     const date = new Date().toISOString().slice(0, 10);
+    const selectionSuffix = selectedTurns.length === turns.length ? '' : '_selection';
     return {
-      ok: true,
-      filename: `${date}_${safe}.md`,
-      markdown: parts.join('\n'),
-      messageCount: turns.length
+      ...response,
+      filename: `${date}_${safe}${selectionSuffix}.md`,
+      markdown: parts.join('\n')
     };
   } catch (error) {
     return { ok: false, error: String(error?.message || error) };
