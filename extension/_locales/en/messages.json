@@ -1,41 +1,29 @@
 {
-  "extensionName": {
-    "message": "Thread to Markdown for ChatGPT"
-  },
-  "extensionDescription": {
-    "message": "Export the open ChatGPT conversation to a private local Markdown file in one click."
-  },
-  "actionTitle": {
-    "message": "Export ChatGPT thread to Markdown"
-  },
-  "popupHeading": {
-    "message": "Thread to Markdown"
-  },
-  "popupTagline": {
-    "message": "Save the open conversation as a local Markdown file."
-  },
-  "privacyTitle": {
-    "message": "Private by design"
-  },
-  "privacyText": {
-    "message": "The page is processed only on your device. Nothing is sent to the developer."
-  },
-  "exportButton": {
-    "message": "Export open thread"
-  },
-  "readyStatus": {
-    "message": "Open a ChatGPT conversation, then export it."
-  },
-  "workingStatus": {
-    "message": "Exporting…"
-  },
-  "wrongPageError": {
-    "message": "Open a ChatGPT conversation first."
-  },
-  "successStatus": {
-    "message": "Saved: $1"
-  },
-  "unofficialNotice": {
-    "message": "Unofficial extension. Not affiliated with OpenAI."
-  }
+  "extensionName": { "message": "Thread to Markdown for ChatGPT" },
+  "extensionDescription": { "message": "Export selected messages from the open ChatGPT conversation to a private local Markdown file." },
+  "actionTitle": { "message": "Export ChatGPT thread to Markdown" },
+  "popupHeading": { "message": "Thread to Markdown" },
+  "popupTagline": { "message": "Choose messages and save them as a local Markdown file." },
+  "privacyTitle": { "message": "Private by design" },
+  "privacyText": { "message": "The page is processed only on your device. Nothing is sent to the developer." },
+  "exportButton": { "message": "Export open thread" },
+  "exportSelectedButton": { "message": "Export selected ($1)" },
+  "selectAllButton": { "message": "Select all" },
+  "clearAllButton": { "message": "Clear" },
+  "loadingStatus": { "message": "Reading the open conversation…" },
+  "readySelectionStatus": { "message": "$1 messages found." },
+  "selectionCount": { "message": "$1 of $2 selected" },
+  "emptySelectionStatus": { "message": "Select at least one message." },
+  "workingStatus": { "message": "Exporting…" },
+  "wrongPageError": { "message": "Open a ChatGPT conversation first." },
+  "noMessagesError": { "message": "No messages were found in the open conversation." },
+  "fallbackThreadTitle": { "message": "ChatGPT conversation" },
+  "successStatus": { "message": "Saved: $1" },
+  "roleUser": { "message": "User" },
+  "roleAssistant": { "message": "ChatGPT" },
+  "roleSystem": { "message": "System" },
+  "roleTool": { "message": "Tool" },
+  "roleConversation": { "message": "Conversation" },
+  "roleMessage": { "message": "Message" },
+  "unofficialNotice": { "message": "Unofficial extension. Not affiliated with OpenAI." }
 }
