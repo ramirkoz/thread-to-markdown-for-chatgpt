@@ -2,11 +2,16 @@
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const type = message?.type;
-  if (type !== 'inspect-thread' && type !== 'export-thread') return false;
+  if (!['inspect-thread', 'export-thread', 'prepare-thread'].includes(type)) return false;
 
-  const task = type === 'inspect-thread'
-    ? inspectThread(message.tabId)
-    : exportThread(message.tabId, message.selectedIndices);
+  let task;
+  if (type === 'inspect-thread') {
+    task = inspectThread(message.tabId);
+  } else if (type === 'export-thread') {
+    task = exportThread(message.tabId, message.selectedIndices, message.format);
+  } else {
+    task = prepareThread(message.tabId, message.selectedIndices, message.format);
+  }
 
   task
     .then((result) => sendResponse({ ok: true, ...result }))
@@ -20,7 +25,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function inspectThread(tabId) {
   await validateChatGptTab(tabId);
-  const result = await readThread(tabId, { includeMarkdown: false });
+  const result = await readThread(tabId, { includeContent: false });
 
   if (!result?.ok || !Array.isArray(result.messages) || !result.messages.length) {
     throw new Error(result?.error || 'The conversation could not be read.');
@@ -33,28 +38,11 @@ async function inspectThread(tabId) {
   };
 }
 
-async function exportThread(tabId, selectedIndices) {
-  await validateChatGptTab(tabId);
-
-  const normalizedSelection = Array.isArray(selectedIndices)
-    ? [...new Set(selectedIndices.filter(Number.isInteger))]
-    : null;
-
-  if (normalizedSelection && normalizedSelection.length === 0) {
-    throw new Error('Select at least one message.');
-  }
-
-  const result = await readThread(tabId, {
-    includeMarkdown: true,
-    selectedIndices: normalizedSelection
-  });
-
-  if (!result?.ok || !result.markdown || !result.filename) {
-    throw new Error(result?.error || 'The conversation could not be read.');
-  }
+async function exportThread(tabId, selectedIndices, requestedFormat) {
+  const result = await prepareThread(tabId, selectedIndices, requestedFormat);
 
   const downloadId = await chrome.downloads.download({
-    url: toDataUrl(result.markdown),
+    url: toDataUrl(result.content, result.mimeType),
     filename: result.filename,
     saveAs: false,
     conflictAction: 'uniquify'
@@ -66,9 +54,45 @@ async function exportThread(tabId, selectedIndices) {
 
   return {
     filename: result.filename,
-    messageCount: result.selectedCount,
+    messageCount: result.messageCount,
+    format: result.format,
     downloadId
   };
+}
+
+async function prepareThread(tabId, selectedIndices, requestedFormat) {
+  await validateChatGptTab(tabId);
+
+  const normalizedSelection = Array.isArray(selectedIndices)
+    ? [...new Set(selectedIndices.filter(Number.isInteger))]
+    : null;
+
+  if (normalizedSelection && normalizedSelection.length === 0) {
+    throw new Error('Select at least one message.');
+  }
+
+  const format = normalizeFormat(requestedFormat);
+  const result = await readThread(tabId, {
+    includeContent: true,
+    selectedIndices: normalizedSelection,
+    format
+  });
+
+  if (!result?.ok || !result.content || !result.filename || !result.mimeType) {
+    throw new Error(result?.error || 'The conversation could not be read.');
+  }
+
+  return {
+    content: result.content,
+    filename: result.filename,
+    mimeType: result.mimeType,
+    messageCount: result.selectedCount,
+    format: result.format
+  };
+}
+
+function normalizeFormat(value) {
+  return ['markdown', 'text', 'json'].includes(value) ? value : 'markdown';
 }
 
 async function validateChatGptTab(tabId) {
@@ -144,20 +168,21 @@ function extractThread(options = {}) {
       turns.push({ role: 'conversation', text });
     }
 
-    const messages = turns.map((turn, index) => ({
-      index,
-      role: turn.role,
-      preview: turn.text.length > 180 ? `${turn.text.slice(0, 177)}…` : turn.text
+    const records = turns.map((turn, index) => ({ index, role: turn.role, text: turn.text }));
+    const messages = records.map((record) => ({
+      index: record.index,
+      role: record.role,
+      preview: record.text.length > 180 ? `${record.text.slice(0, 177)}…` : record.text
     }));
 
     const requested = Array.isArray(options.selectedIndices)
-      ? new Set(options.selectedIndices.filter((index) => Number.isInteger(index) && index >= 0 && index < turns.length))
+      ? new Set(options.selectedIndices.filter((index) => Number.isInteger(index) && index >= 0 && index < records.length))
       : null;
-    const selectedTurns = requested
-      ? turns.filter((turn, index) => requested.has(index))
-      : turns;
+    const selectedRecords = requested
+      ? records.filter((record) => requested.has(record.index))
+      : records;
 
-    if (!selectedTurns.length) {
+    if (!selectedRecords.length) {
       return { ok: false, error: 'Select at least one message.' };
     }
 
@@ -165,11 +190,11 @@ function extractThread(options = {}) {
       ok: true,
       title,
       messages,
-      messageCount: turns.length,
-      selectedCount: selectedTurns.length
+      messageCount: records.length,
+      selectedCount: selectedRecords.length
     };
 
-    if (!options.includeMarkdown) return response;
+    if (!options.includeContent) return response;
 
     const labels = {
       user: 'User',
@@ -179,20 +204,54 @@ function extractThread(options = {}) {
       conversation: 'Conversation',
       unknown: 'Message'
     };
-
+    const format = ['markdown', 'text', 'json'].includes(options.format) ? options.format : 'markdown';
     const exportedAt = new Date().toISOString();
     const source = location.href;
-    const parts = [
-      `# ${title}`,
-      '',
-      `> Exported: ${exportedAt}`,
-      `> Source: ${source}`,
-      `> Messages: ${selectedTurns.length} of ${turns.length}`,
-      ''
-    ];
+    let content;
+    let extension;
+    let mimeType;
 
-    for (const turn of selectedTurns) {
-      parts.push(`## ${labels[turn.role] || labels.unknown}`, '', turn.text, '', '---', '');
+    if (format === 'json') {
+      content = JSON.stringify({
+        title,
+        exportedAt,
+        source,
+        messageCount: records.length,
+        selectedCount: selectedRecords.length,
+        messages: selectedRecords
+      }, null, 2);
+      extension = 'json';
+      mimeType = 'application/json';
+    } else if (format === 'text') {
+      const parts = [
+        title,
+        '',
+        `Exported: ${exportedAt}`,
+        `Source: ${source}`,
+        `Messages: ${selectedRecords.length} of ${records.length}`,
+        ''
+      ];
+      for (const record of selectedRecords) {
+        parts.push(`[${labels[record.role] || labels.unknown}]`, record.text, '', '---', '');
+      }
+      content = parts.join('\n');
+      extension = 'txt';
+      mimeType = 'text/plain';
+    } else {
+      const parts = [
+        `# ${title}`,
+        '',
+        `> Exported: ${exportedAt}`,
+        `> Source: ${source}`,
+        `> Messages: ${selectedRecords.length} of ${records.length}`,
+        ''
+      ];
+      for (const record of selectedRecords) {
+        parts.push(`## ${labels[record.role] || labels.unknown}`, '', record.text, '', '---', '');
+      }
+      content = parts.join('\n');
+      extension = 'md';
+      mimeType = 'text/markdown';
     }
 
     const safe = (title || 'chatgpt-thread')
@@ -203,23 +262,25 @@ function extractThread(options = {}) {
       .slice(0, 120) || 'chatgpt-thread';
 
     const date = new Date().toISOString().slice(0, 10);
-    const selectionSuffix = selectedTurns.length === turns.length ? '' : '_selection';
+    const selectionSuffix = selectedRecords.length === records.length ? '' : '_selection';
     return {
       ...response,
-      filename: `${date}_${safe}${selectionSuffix}.md`,
-      markdown: parts.join('\n')
+      format,
+      filename: `${date}_${safe}${selectionSuffix}.${extension}`,
+      mimeType,
+      content
     };
   } catch (error) {
     return { ok: false, error: String(error?.message || error) };
   }
 }
 
-function toDataUrl(text) {
+function toDataUrl(text, mimeType) {
   const bytes = new TextEncoder().encode(text);
   let binary = '';
   const size = 0x8000;
   for (let i = 0; i < bytes.length; i += size) {
     binary += String.fromCharCode(...bytes.subarray(i, i + size));
   }
-  return `data:text/markdown;charset=utf-8;base64,${btoa(binary)}`;
+  return `data:${mimeType};charset=utf-8;base64,${btoa(binary)}`;
 }
