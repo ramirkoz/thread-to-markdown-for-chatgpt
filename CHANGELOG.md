@@ -6,6 +6,8 @@
 - Added individual message selection before export.
 - Added Select all and Clear controls.
 - Added selected-message counts and empty-selection protection.
+- Added Markdown, plain-text, and JSON output formats.
+- Added local clipboard copying for the selected messages.
 - Kept local processing and the existing minimum permissions.
 - Added automated validation for JavaScript, localization, permissions, and package structure.
 - Changed release publishing so it runs only from version tags.
