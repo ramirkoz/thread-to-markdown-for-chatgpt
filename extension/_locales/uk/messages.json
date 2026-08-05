@@ -1,41 +1,29 @@
 {
-  "extensionName": {
-    "message": "Гілка ChatGPT у Markdown"
-  },
-  "extensionDescription": {
-    "message": "Експортує відкриту розмову ChatGPT у приватний локальний Markdown-файл одним натисканням."
-  },
-  "actionTitle": {
-    "message": "Експортувати гілку ChatGPT у Markdown"
-  },
-  "popupHeading": {
-    "message": "Гілка у Markdown"
-  },
-  "popupTagline": {
-    "message": "Збережіть відкриту розмову як локальний Markdown-файл."
-  },
-  "privacyTitle": {
-    "message": "Приватність за замовчуванням"
-  },
-  "privacyText": {
-    "message": "Сторінка обробляється лише на вашому пристрої. Розробнику нічого не надсилається."
-  },
-  "exportButton": {
-    "message": "Експортувати відкриту гілку"
-  },
-  "readyStatus": {
-    "message": "Відкрийте розмову ChatGPT, а потім експортуйте її."
-  },
-  "workingStatus": {
-    "message": "Експорт…"
-  },
-  "wrongPageError": {
-    "message": "Спочатку відкрийте розмову ChatGPT."
-  },
-  "successStatus": {
-    "message": "Збережено: $1"
-  },
-  "unofficialNotice": {
-    "message": "Неофіційне розширення. Не пов’язане з OpenAI."
-  }
+  "extensionName": { "message": "Гілка ChatGPT у Markdown" },
+  "extensionDescription": { "message": "Експортує вибрані повідомлення з відкритої розмови ChatGPT у приватний локальний Markdown-файл." },
+  "actionTitle": { "message": "Експортувати гілку ChatGPT у Markdown" },
+  "popupHeading": { "message": "Гілка у Markdown" },
+  "popupTagline": { "message": "Виберіть повідомлення та збережіть їх як локальний Markdown-файл." },
+  "privacyTitle": { "message": "Приватність за замовчуванням" },
+  "privacyText": { "message": "Сторінка обробляється лише на вашому пристрої. Розробнику нічого не надсилається." },
+  "exportButton": { "message": "Експортувати відкриту гілку" },
+  "exportSelectedButton": { "message": "Експортувати вибране ($1)" },
+  "selectAllButton": { "message": "Вибрати все" },
+  "clearAllButton": { "message": "Очистити" },
+  "loadingStatus": { "message": "Читаємо відкриту розмову…" },
+  "readySelectionStatus": { "message": "Знайдено повідомлень: $1." },
+  "selectionCount": { "message": "Вибрано $1 із $2" },
+  "emptySelectionStatus": { "message": "Виберіть хоча б одне повідомлення." },
+  "workingStatus": { "message": "Експорт…" },
+  "wrongPageError": { "message": "Спочатку відкрийте розмову ChatGPT." },
+  "noMessagesError": { "message": "У відкритій розмові не знайдено повідомлень." },
+  "fallbackThreadTitle": { "message": "Розмова ChatGPT" },
+  "successStatus": { "message": "Збережено: $1" },
+  "roleUser": { "message": "Користувач" },
+  "roleAssistant": { "message": "ChatGPT" },
+  "roleSystem": { "message": "Система" },
+  "roleTool": { "message": "Інструмент" },
+  "roleConversation": { "message": "Розмова" },
+  "roleMessage": { "message": "Повідомлення" },
+  "unofficialNotice": { "message": "Неофіційне розширення. Не пов’язане з OpenAI." }
 }
