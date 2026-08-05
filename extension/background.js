@@ -170,6 +170,37 @@ function extractThread(options = {}) {
     const directChildren = (element, tagName) => [...element.children]
       .filter((child) => child.tagName === tagName);
 
+    const accessibleLabel = (element) => cleanText(
+      element.innerText ||
+      element.textContent ||
+      element.getAttribute('aria-label') ||
+      element.getAttribute('title') ||
+      element.getAttribute('download') ||
+      ''
+    );
+
+    const safeHref = (element) => {
+      const href = element.href ||
+        element.getAttribute('href') ||
+        element.getAttribute('data-href') ||
+        element.getAttribute('data-url') ||
+        '';
+      return /^(javascript|data):/i.test(href) ? '' : href;
+    };
+
+    const isUiControl = (element) => {
+      const descriptor = cleanText([
+        element.getAttribute('data-testid'),
+        element.getAttribute('aria-label'),
+        element.getAttribute('title'),
+        element.textContent
+      ].filter(Boolean).join(' ')).toLowerCase();
+
+      if (!descriptor) return false;
+      if (/(download|attachment|file|source|завантаж|вкладенн|файл|джерел)/i.test(descriptor)) return false;
+      return /(copy|copied|read aloud|good response|bad response|regenerate|retry|more actions|share|edit message|stop generating|копіювати|скопійовано|озвучити|подобається|не подобається|перегенерувати|повторити|інші дії|поділитися|редагувати|зупинити)/i.test(descriptor);
+    };
+
     const tableToMarkdown = (table, nodeToMarkdown) => {
       const rowNodes = [...table.querySelectorAll('tr')];
       const rows = rowNodes.map((row) => [...row.children]
@@ -204,8 +235,9 @@ function extractThread(options = {}) {
       const start = ordered ? Number.parseInt(list.getAttribute('start') || '1', 10) || 1 : 1;
       const items = directChildren(list, 'LI');
       const lines = [];
+      let visibleIndex = 0;
 
-      items.forEach((item, index) => {
+      items.forEach((item) => {
         const nestedLists = [...item.children]
           .filter((child) => child.tagName === 'UL' || child.tagName === 'OL');
         const clone = item.cloneNode(true);
@@ -214,21 +246,57 @@ function extractThread(options = {}) {
         const raw = normalizeMarkdown(nodeToMarkdown(clone, { inline: true }))
           .replace(/\n{2,}/g, '\n')
           .trim();
-        const marker = ordered ? `${start + index}.` : '-';
         const indent = '  '.repeat(depth);
-        const continuation = `${indent}  `;
-        const content = raw
-          .split('\n')
-          .map((line, lineIndex) => lineIndex === 0 ? line : `${continuation}${line}`)
-          .join('\n');
 
-        lines.push(`${indent}${marker} ${content}`.trimEnd());
+        if (raw) {
+          const marker = ordered ? `${start + visibleIndex}.` : '-';
+          const continuation = `${indent}  `;
+          const content = raw
+            .split('\n')
+            .map((line, lineIndex) => lineIndex === 0 ? line : `${continuation}${line}`)
+            .join('\n');
+          lines.push(`${indent}${marker} ${content}`.trimEnd());
+          visibleIndex += 1;
+        }
+
         nestedLists.forEach((nested) => {
-          lines.push(listToMarkdown(nested, depth + 1).trimEnd());
+          const nestedDepth = raw ? depth + 1 : depth;
+          const nestedMarkdown = listToMarkdown(nested, nestedDepth).trimEnd();
+          if (nestedMarkdown) lines.push(nestedMarkdown);
         });
       });
 
-      return `${lines.join('\n')}\n\n`;
+      return lines.length ? `${lines.join('\n')}\n\n` : '';
+    };
+
+    const inlineTags = new Set([
+      'A', 'ABBR', 'B', 'BUTTON', 'CITE', 'CODE', 'DEL', 'EM', 'I', 'KBD',
+      'LABEL', 'MARK', 'S', 'SMALL', 'SPAN', 'STRONG', 'SUB', 'SUP', 'TIME'
+    ]);
+
+    const shouldInsertSpace = (previousValue, nextValue, previousNode, nextNode) => {
+      if (!previousValue || !nextValue) return false;
+      if (/\s$/.test(previousValue) || /^\s/.test(nextValue)) return false;
+      if (/^[,.;:!?%)\]}]/.test(nextValue) || /[(\[{]$/.test(previousValue)) return false;
+      if (previousNode?.nodeType !== Node.ELEMENT_NODE || nextNode?.nodeType !== Node.ELEMENT_NODE) return false;
+      return inlineTags.has(previousNode.tagName) && inlineTags.has(nextNode.tagName);
+    };
+
+    const childMarkdown = (element, context) => {
+      const parts = [];
+      let previousNode = null;
+      let previousValue = '';
+
+      for (const child of element.childNodes) {
+        const value = nodeToMarkdown(child, context);
+        if (!value) continue;
+        if (shouldInsertSpace(previousValue, value, previousNode, child)) parts.push(' ');
+        parts.push(value);
+        previousNode = child;
+        previousValue = value;
+      }
+
+      return parts.join('');
     };
 
     nodeToMarkdown = (node, context = {}) => {
@@ -244,8 +312,9 @@ function extractThread(options = {}) {
 
       const element = node;
       const tag = element.tagName;
-      const skipTags = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'SVG', 'BUTTON', 'FORM', 'INPUT', 'TEXTAREA', 'SELECT']);
+      const skipTags = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'FORM', 'INPUT', 'TEXTAREA', 'SELECT']);
       if (skipTags.has(tag) || element.getAttribute('aria-hidden') === 'true') return '';
+      if (tag === 'SVG') return '';
 
       if (
         element.classList?.contains('whitespace-pre-wrap') &&
@@ -254,9 +323,7 @@ function extractThread(options = {}) {
         return `${escapeMultiline(element.innerText || element.textContent)}\n\n`;
       }
 
-      const children = () => [...element.childNodes]
-        .map((child) => nodeToMarkdown(child, context))
-        .join('');
+      const children = () => childMarkdown(element, context);
 
       if (tag === 'BR') return '\n';
       if (tag === 'HR') return '\n\n---\n\n';
@@ -271,11 +338,14 @@ function extractThread(options = {}) {
 
       if (/^H[1-6]$/.test(tag)) {
         const level = Number(tag.slice(1));
-        return `${'#'.repeat(level)} ${normalizeMarkdown(children())}\n\n`;
+        const value = normalizeMarkdown(children());
+        return value ? `${'#'.repeat(level)} ${value}\n\n` : '';
       }
 
       if (tag === 'BLOCKQUOTE') {
-        const quoted = normalizeMarkdown(children())
+        const value = normalizeMarkdown(children());
+        if (!value) return '';
+        const quoted = value
           .split('\n')
           .map((line) => `> ${line}`)
           .join('\n');
@@ -295,10 +365,19 @@ function extractThread(options = {}) {
         return value ? `~~${value}~~` : '';
       }
       if (tag === 'A') {
-        const label = normalizeMarkdown(children()) || escapeInline(element.textContent || '');
-        const href = element.href || element.getAttribute('href') || '';
-        if (!href || href.startsWith('javascript:')) return label;
-        return `[${label}](${href.replace(/\)/g, '%29')})`;
+        const href = safeHref(element);
+        const label = normalizeMarkdown(children()) || escapeInline(accessibleLabel(element));
+        if (!href) return label;
+        const fallbackLabel = label || escapeInline(element.getAttribute('download') || href);
+        return `[${fallbackLabel}](${href.replace(/\)/g, '%29')})`;
+      }
+      if (tag === 'BUTTON') {
+        if (isUiControl(element)) return '';
+        const nestedLink = element.querySelector('a[href], a[data-href], a[data-url]');
+        if (nestedLink) return nodeToMarkdown(nestedLink, context);
+        const label = normalizeMarkdown(children()) || escapeInline(accessibleLabel(element));
+        const href = safeHref(element);
+        return href && label ? `[${label}](${href.replace(/\)/g, '%29')})` : label;
       }
       if (tag === 'IMG') {
         const alt = cleanText(element.getAttribute('alt') || '');
@@ -307,6 +386,13 @@ function extractThread(options = {}) {
       }
 
       const value = children();
+      const role = element.getAttribute('role');
+      if (!value && (role === 'button' || role === 'link') && !isUiControl(element)) {
+        const label = escapeInline(accessibleLabel(element));
+        const href = safeHref(element);
+        return href && label ? `[${label}](${href.replace(/\)/g, '%29')})` : label;
+      }
+
       const blockTags = new Set(['P', 'DIV', 'SECTION', 'ARTICLE', 'MAIN', 'HEADER', 'FOOTER', 'ASIDE', 'FIGURE', 'FIGCAPTION']);
       if (blockTags.has(tag) && !context.inline) {
         const normalized = normalizeMarkdown(value);
