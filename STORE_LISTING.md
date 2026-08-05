@@ -1,5 +1,13 @@
 # Chrome Web Store listing — English
 
+## Publication status
+
+Published in the Chrome Web Store.
+
+Store URL: https://chromewebstore.google.com/detail/thread-to-markdown-for-ch/ingagbhapppiiiccljbhiledobnmhhfb
+
+Extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
+
 ## Title
 
 Thread to Markdown for ChatGPT
