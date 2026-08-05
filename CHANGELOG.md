@@ -2,6 +2,8 @@
 
 ## 1.4.0 — 2026-08-02
 
+- Published in the Chrome Web Store.
+- Chrome Web Store extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`.
 - Added a user-facing export confirmation popup and privacy disclosure.
 - Added English and Ukrainian localization.
 - Removed unnecessary host permissions.
