@@ -18,6 +18,10 @@ Chrome Web Store extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
 - Works only after the user presses the export button.
 - Processes everything locally. No telemetry, tracking, server, or account is used.
 
+## Development version 1.5.0
+
+The repository version is currently in development and adds a compact message preview with individual message selection before export. The Chrome Web Store version remains 1.4.0 until browser testing and release review are complete.
+
 ## Install from source
 
 1. Download and extract the release ZIP.
