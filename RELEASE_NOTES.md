@@ -1,9 +1,16 @@
 # Thread to Markdown for ChatGPT 1.4.0
 
-Store-ready privacy and usability release.
+Published privacy and usability release.
+
+## Chrome Web Store
+
+[Install Thread to Markdown for ChatGPT](https://chromewebstore.google.com/detail/thread-to-markdown-for-ch/ingagbhapppiiiccljbhiledobnmhhfb)
+
+Extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
 
 ## Highlights
 
+- Published in the Chrome Web Store.
 - Clear export popup with an explicit local-processing disclosure.
 - English and Ukrainian localization.
 - Minimum permissions only: `activeTab`, `scripting`, and `downloads`.
@@ -13,9 +20,9 @@ Store-ready privacy and usability release.
 
 ## Installation
 
-For manual testing, extract the source archive and load the `extension` directory through `chrome://extensions` in Developer mode.
+For normal users, install directly from the Chrome Web Store link above.
 
-For normal users, install from the Chrome Web Store after review approval.
+For manual testing, extract the source archive and load the `extension` directory through `chrome://extensions` in Developer mode.
 
 ## Verification
 
