@@ -1,6 +1,6 @@
-# Thread to Markdown for ChatGPT 1.4.0
+# Thread to Markdown for ChatGPT 1.5.0
 
-Published privacy and usability release.
+Message selection and structured export release.
 
 ## Chrome Web Store
 
@@ -8,25 +8,50 @@ Published privacy and usability release.
 
 Extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
 
+The Chrome Web Store currently serves version 1.4.0. Version 1.5.0 is prepared for submission after final package review.
+
 ## Highlights
 
-- Published in the Chrome Web Store.
-- Clear export popup with an explicit local-processing disclosure.
-- English and Ukrainian localization.
-- Minimum permissions only: `activeTab`, `scripting`, and `downloads`.
-- No host permissions, telemetry, remote code, advertising, or server upload.
-- Chrome Web Store ZIP with `manifest.json` at the archive root.
-- Public privacy policy and complete store-listing materials.
+- Compact preview of messages detected in the open ChatGPT conversation.
+- Individual message selection before export.
+- Select all, Clear, live selection count, and empty-selection protection.
+- Markdown, plain-text, and JSON export formats.
+- Local clipboard copying for selected messages.
+- Structured Markdown preservation for headings, links, emphasis, blockquotes, ordered and unordered lists, nested lists, tables, inline code, and fenced code blocks.
+- JSON includes both plain text and structured Markdown for each selected message.
+- Cleanup of empty list markers, interface-only controls, code-copy labels, citation labels, and temporary attachment links.
+- English and Ukrainian interface localization.
+- Local processing only with the same minimum permissions: `activeTab`, `scripting`, and `downloads`.
 
-## Installation
+## Privacy
 
-For normal users, install directly from the Chrome Web Store link above.
+The extension does not upload conversation content or generated files. It uses no telemetry, analytics, tracking, advertising, remote code, or custom server.
 
-For manual testing, extract the source archive and load the `extension` directory through `chrome://extensions` in Developer mode.
+## Package verification
 
-## Verification
+The release workflow validates JavaScript syntax, Manifest V3, the exact permission list, localization files, required package files, the service-worker entry point, and `manifest.json` at the Chrome Web Store ZIP root.
 
-Compare downloaded files with `SHA256SUMS.txt`.
+Compare downloaded ZIP files with `SHA256SUMS.txt`.
+
+## Installation for testing
+
+1. Extract the source archive.
+2. Open `chrome://extensions`.
+3. Enable Developer mode.
+4. Select Load unpacked.
+5. Choose the `extension` folder.
+
+## Test status
+
+- Automated package validation: PASS.
+- Message loading and selection: PASS.
+- Selected-message Markdown export: PASS.
+- TXT export: PASS.
+- JSON export: PASS.
+- Clipboard copying: PASS.
+- Structured tables, lists, links, and code: PASS.
+- ChatGPT interface-label cleanup: PASS.
+- Chrome Web Store review for 1.5.0: PENDING.
 
 ## Support development
 
