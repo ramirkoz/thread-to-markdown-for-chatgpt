@@ -45,7 +45,7 @@
     "message": "HTML (.html)"
   },
   "formatPdf": {
-    "message": "PDF (print dialog)"
+    "message": "PDF (guided print)"
   },
   "formatText": {
     "message": "Plain text (.txt)"
@@ -75,7 +75,7 @@
     "message": "$1 messages copied as $2."
   },
   "pdfReadyStatus": {
-    "message": "The print dialog is open. Choose Save as PDF."
+    "message": "PDF preparation page opened. Use its button, then turn off Headers and footers in More settings."
   },
   "clipboardError": {
     "message": "The selected messages could not be copied."
