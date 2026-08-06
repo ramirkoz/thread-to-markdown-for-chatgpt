@@ -22,6 +22,7 @@ jobs:
           set -euo pipefail
           node --check extension/background.js
           node --check extension/background-entry.js
+          node --check extension/html-export.js
           node --check extension/popup.js
 
           python - <<'PY'
@@ -41,6 +42,7 @@ jobs:
           required = [
               root / 'background.js',
               root / 'background-entry.js',
+              root / 'html-export.js',
               root / 'popup.html',
               root / 'popup.css',
               root / 'popup.js',
@@ -54,6 +56,12 @@ jobs:
 
           html = (root / 'popup.html').read_text()
           js = (root / 'popup.js').read_text()
+          html_export = (root / 'html-export.js').read_text()
+          assert 'value="html"' in html
+          assert "'html'" in js
+          assert "format: 'html'" in html_export
+          assert "mimeType: 'text/html'" in html_export
+
           keys = set(re.findall(r'data-i18n="([^"]+)"', html))
           keys.update(re.findall(r"getMessage\('([^']+)'", js))
 
@@ -70,7 +78,7 @@ jobs:
           (cd extension && zip -qr /tmp/thread-to-markdown.zip .)
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'manifest.json'
 
-      - name: Build release candidate packages
+      - name: Build development packages
         if: github.event_name == 'push'
         shell: bash
         run: |
@@ -81,20 +89,20 @@ jobs:
           rm -rf dist source-package
           mkdir -p dist "source-package/${ROOT}"
 
-          (cd extension && zip -9 -qr "../dist/${ROOT}-chrome-web-store.zip" .)
+          (cd extension && zip -9 -qr "../dist/${ROOT}-chrome-package.zip" .)
 
           cp -R extension "source-package/${ROOT}/"
           cp README.md PRIVACY.md CHANGELOG.md RELEASE_NOTES.md STORE_LISTING.md STORE_SUBMISSION_CHECKLIST.md LICENSE "source-package/${ROOT}/"
           (cd source-package && zip -9 -qr "../dist/${ROOT}-source.zip" "${ROOT}")
 
-          unzip -Z1 "dist/${ROOT}-chrome-web-store.zip" | grep -qx 'manifest.json'
+          unzip -Z1 "dist/${ROOT}-chrome-package.zip" | grep -qx 'manifest.json'
           (cd dist && sha256sum *.zip > SHA256SUMS.txt)
 
-      - name: Upload release candidate
+      - name: Upload development build
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: thread-to-markdown-for-chatgpt-release-candidate
+          name: thread-to-markdown-for-chatgpt-development-build
           path: dist/
           if-no-files-found: error
           retention-days: 14
