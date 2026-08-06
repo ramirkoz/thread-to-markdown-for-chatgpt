@@ -22,6 +22,7 @@ jobs:
           VERSION="$(python -c "import json; print(json.load(open('extension/manifest.json'))['version'])")"
           test "${GITHUB_REF_NAME}" = "v${VERSION}"
           node --check extension/background.js
+          node --check extension/background-entry.js
           node --check extension/popup.js
           python - <<'PY'
           import json
@@ -31,9 +32,11 @@ jobs:
           assert manifest['manifest_version'] == 3
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
           assert 'host_permissions' not in manifest
+          assert manifest['background']['service_worker'] == 'background-entry.js'
 
           for path in [
               'extension/background.js',
+              'extension/background-entry.js',
               'extension/popup.html',
               'extension/popup.css',
               'extension/popup.js',
@@ -62,6 +65,7 @@ jobs:
           cp README.md PRIVACY.md CHANGELOG.md RELEASE_NOTES.md STORE_LISTING.md STORE_SUBMISSION_CHECKLIST.md LICENSE "source-package/${ROOT}/"
           (cd source-package && zip -9 -qr "../dist/${ROOT}-source.zip" "${ROOT}")
 
+          unzip -Z1 "dist/${ROOT}-chrome-web-store.zip" | grep -qx 'manifest.json'
           (cd dist && sha256sum *.zip > SHA256SUMS.txt)
 
       - name: Publish GitHub Release
