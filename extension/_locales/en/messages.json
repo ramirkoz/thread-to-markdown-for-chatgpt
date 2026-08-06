@@ -41,6 +41,18 @@
   "searchMessagesPlaceholder": {
     "message": "Search by text or role"
   },
+  "roleFilterLabel": {
+    "message": "Filter messages by role"
+  },
+  "roleFilterAll": {
+    "message": "All"
+  },
+  "roleFilterUser": {
+    "message": "User"
+  },
+  "roleFilterAssistant": {
+    "message": "ChatGPT"
+  },
   "tocHeading": {
     "message": "Thread contents"
   },
