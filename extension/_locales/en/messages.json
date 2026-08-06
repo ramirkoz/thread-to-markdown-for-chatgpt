@@ -3,7 +3,7 @@
     "message": "Thread to Markdown for ChatGPT"
   },
   "extensionDescription": {
-    "message": "Search, navigate, select, and export ChatGPT messages locally as Markdown, HTML, PDF, ZIP, plain text, or JSON."
+    "message": "Search, navigate, select, and export ChatGPT messages, with a local reusable prompt library."
   },
   "actionTitle": {
     "message": "Export ChatGPT thread"
@@ -88,6 +88,84 @@
   },
   "emptyMessagePreview": {
     "message": "Empty message"
+  },
+  "promptLibraryHeading": {
+    "message": "Local prompt library"
+  },
+  "promptLibraryPrivacy": {
+    "message": "Prompts are stored only in this browser profile."
+  },
+  "promptSearchLabel": {
+    "message": "Search saved prompts"
+  },
+  "promptSearchPlaceholder": {
+    "message": "Search by name or text"
+  },
+  "promptCount": {
+    "message": "$1"
+  },
+  "promptEmpty": {
+    "message": "No prompts saved yet."
+  },
+  "promptNoResults": {
+    "message": "No matching prompts."
+  },
+  "promptAdd": {
+    "message": "Add prompt"
+  },
+  "promptTitleLabel": {
+    "message": "Prompt name"
+  },
+  "promptTitlePlaceholder": {
+    "message": "For example: Weekly report"
+  },
+  "promptContentLabel": {
+    "message": "Prompt text"
+  },
+  "promptContentPlaceholder": {
+    "message": "Enter the reusable instruction"
+  },
+  "promptCancel": {
+    "message": "Cancel"
+  },
+  "promptSave": {
+    "message": "Save prompt"
+  },
+  "promptUpdate": {
+    "message": "Update prompt"
+  },
+  "promptCopy": {
+    "message": "Copy"
+  },
+  "promptEdit": {
+    "message": "Edit"
+  },
+  "promptDelete": {
+    "message": "Delete"
+  },
+  "promptCopied": {
+    "message": "Copied prompt: $1."
+  },
+  "promptSaved": {
+    "message": "Saved prompt: $1."
+  },
+  "promptUpdated": {
+    "message": "Updated prompt: $1."
+  },
+  "promptDeleted": {
+    "message": "Deleted prompt: $1."
+  },
+  "promptDeleteConfirm": {
+    "message": "Delete prompt “$1”?"
+  },
+  "promptRequiredError": {
+    "message": "Enter a prompt name and text."
+  },
+  "promptLimitReached": {
+    "message": "The limit of $1 prompts has been reached."
+  },
+  "promptStorageError": {
+    "message": "The prompt library could not be saved."
   },
   "formatLabel": {
     "message": "Format"
