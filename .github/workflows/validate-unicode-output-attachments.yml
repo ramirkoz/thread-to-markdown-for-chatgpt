@@ -1,0 +1,87 @@
+name: Validate Unicode output attachments
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Unicode assistant output detection
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-unicode-output-fix.js
+          grep -q "importScripts('attachment-unicode-output-fix.js')" extension/background-entry.js
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+
+          const payload = {
+            messages: [
+              {
+                index: 5,
+                role: 'assistant',
+                text: 'Готово. Перетворив файл.\n\nРезюме_Альона_Гавриленко_інфографіка.pdf',
+                markdown: 'Готово.\n\n [Резюме\\_Альона\\_Гавриленко\\_інфографіка.pdf](sandbox:/mnt/data/output.pdf)'
+              },
+              {
+                index: 6,
+                role: 'assistant',
+                text: 'Документ доступний як [Підсумковий звіт 2026.pdf](sandbox:/mnt/data/report.pdf)'
+              }
+            ]
+          };
+
+          const context = {
+            console,
+            self: null,
+            mainWorldUnresolvedDescriptors: () => [],
+            JSON,
+            String,
+            Array,
+            Set,
+            Number
+          };
+          context.self = context;
+          context.readThread = async () => ({
+            ok: true,
+            content: JSON.stringify(payload)
+          });
+
+          vm.createContext(context);
+          vm.runInContext(
+            fs.readFileSync('extension/attachment-unicode-output-fix.js', 'utf8'),
+            context
+          );
+
+          (async () => {
+            await context.self.readThread(1, { includeContent: true, format: 'json' });
+            const descriptors = context.mainWorldUnresolvedDescriptors([]);
+            const names = descriptors.map((item) => item.filename);
+
+            if (!names.includes('Резюме_Альона_Гавриленко_інфографіка.pdf')) {
+              throw new Error(`Unicode assistant PDF was not detected: ${JSON.stringify(names)}`);
+            }
+            if (!names.includes('Підсумковий звіт 2026.pdf')) {
+              throw new Error(`Spaced Unicode assistant PDF was not detected: ${JSON.stringify(names)}`);
+            }
+            if (names.some((name) => name.startsWith('_Альона'))) {
+              throw new Error(`Unicode filename was truncated: ${JSON.stringify(names)}`);
+            }
+            console.log('Unicode assistant output detection: PASS');
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
