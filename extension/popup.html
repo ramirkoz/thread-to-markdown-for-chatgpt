@@ -21,6 +21,14 @@
       <span data-i18n="privacyText">The page is processed only on your device. Nothing is sent to the developer.</span>
     </section>
 
+    <section id="selected-text-handoff" class="selected-text-handoff">
+      <div>
+        <strong data-i18n="sendSelectionHeading">Send selected text to ChatGPT</strong>
+        <p data-i18n="sendSelectionDescription">Select text on the current page. It will be inserted into a new ChatGPT chat without being sent automatically.</p>
+      </div>
+      <button id="send-selection-to-chatgpt" class="send-selection-button" type="button" data-i18n="sendSelectionButton">Insert selected text</button>
+    </section>
+
     <section id="selection" class="selection" hidden>
       <div class="selection-head">
         <div>
@@ -145,5 +153,6 @@
   <script src="role-filter.js"></script>
   <script src="search-navigation.js"></script>
   <script src="prompt-library.js"></script>
+  <script src="selected-text-to-chatgpt.js"></script>
 </body>
 </html>
