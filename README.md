@@ -1,6 +1,6 @@
 # Thread to Markdown for ChatGPT
 
-A small, privacy-first Chrome extension that exports the ChatGPT conversation currently open in your browser to a clean Markdown file.
+A small, privacy-first Chrome extension that exports the ChatGPT conversation currently open in your browser to local files or the clipboard.
 
 > Independent and unofficial. Not affiliated with or endorsed by OpenAI.
 
@@ -10,21 +10,28 @@ A small, privacy-first Chrome extension that exports the ChatGPT conversation cu
 
 Chrome Web Store extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
 
+The current Chrome Web Store version is 1.4.0.
+
 ## What it does
 
-- Exports user and assistant messages from the open conversation.
-- Adds the conversation title, export time, and source URL.
-- Creates a readable `.md` file in the standard Downloads folder.
-- Works only after the user presses the export button.
+- Loads user and assistant messages from the open conversation.
+- Lets the user select individual messages before export.
+- Exports selected messages as Markdown, plain text, or JSON.
+- Copies selected messages to the clipboard locally.
+- Preserves headings, lists, tables, links, emphasis, quotes, inline code, and fenced code blocks in structured exports.
+- Adds the conversation title, export time, source URL, and safe filename.
+- Works only after an explicit user action.
 - Processes everything locally. No telemetry, tracking, server, or account is used.
 
-## Development version 1.5.0
+## Version 1.5.0 release candidate
 
-The repository version is currently in development and adds a compact message preview with individual message selection before export. The Chrome Web Store version remains 1.4.0 until browser testing and release review are complete.
+The repository version is 1.5.0 and has completed automated validation plus manual browser checks for message selection, Markdown/TXT/JSON export, clipboard copying, structured formatting, link cleanup, and removal of ChatGPT interface labels.
+
+Chrome Web Store 1.4.0 remains the public stable version until 1.5.0 is submitted and approved.
 
 ## Install from source
 
-1. Download and extract the release ZIP.
+1. Download and extract the source archive.
 2. Open `chrome://extensions`.
 3. Enable **Developer mode**.
 4. Select **Load unpacked**.
@@ -36,8 +43,8 @@ The repository version is currently in development and adds a compact message pr
 | Permission | Why it is needed |
 |---|---|
 | `activeTab` | Access the tab explicitly selected by the user. |
-| `scripting` | Read the open conversation when Export is pressed. |
-| `downloads` | Save the generated Markdown file locally. |
+| `scripting` | Read the open conversation after the user requests it. |
+| `downloads` | Save the generated export file locally. |
 
 The extension requests no broad host permissions and performs no network requests.
 
@@ -45,14 +52,16 @@ The extension requests no broad host permissions and performs no network request
 
 See [PRIVACY.md](PRIVACY.md). Conversation content stays on the user's device and is not sent to the developer or third parties.
 
-## Version 1.4.0
+## Version 1.5.0 highlights
 
-- Published in the Chrome Web Store.
-- Added a clear export popup with local-processing disclosure.
-- Added English and Ukrainian localization.
-- Removed unnecessary host permissions.
-- Rebuilt the package with `manifest.json` at the ZIP root for Chrome Web Store submission.
-- Added public privacy, store-listing, and submission documentation.
+- Compact preview of detected messages.
+- Individual selection, Select all, and Clear controls.
+- Markdown, TXT, and JSON formats.
+- Local clipboard copying.
+- Structured preservation of tables, lists, headings, links, quotes, and code.
+- Cleanup of empty list items, temporary attachment links, citation labels, and ChatGPT interface controls.
+- English and Ukrainian localization.
+- Minimum permissions only.
 
 ## Support development
 
