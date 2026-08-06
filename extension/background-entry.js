@@ -78,3 +78,4 @@ importScripts('attachment-resource-fallback.js');
 importScripts('attachment-activation-fallback.js');
 importScripts('attachment-main-world-fallback.js');
 importScripts('attachment-unicode-output-fix.js');
+importScripts('attachment-output-card-annotation.js');
