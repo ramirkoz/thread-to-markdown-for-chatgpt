@@ -20,6 +20,7 @@
 - Added Unicode-safe detection for assistant-generated output filenames, including Ukrainian filenames and names containing spaces.
 - Added an assistant-output proxy that activates hidden, delegated, or nearby download controls when a generated filename is rendered as plain text.
 - Added direct binding between assistant-generated filenames and the compact file-card download icon rendered beside the filename.
+- Added detection for icon-only download controls implemented as tabindex, delegated, or cursor-pointer elements rather than normal buttons.
 - Added ZIP structure and CRC validation to CI.
 - Added HTML, PDF, and ZIP localization.
 - Kept local processing and the existing minimum permissions.
