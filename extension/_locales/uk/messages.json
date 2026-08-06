@@ -41,6 +41,18 @@
   "searchMessagesPlaceholder": {
     "message": "Пошук за текстом або роллю"
   },
+  "roleFilterLabel": {
+    "message": "Фільтр повідомлень за роллю"
+  },
+  "roleFilterAll": {
+    "message": "Усі"
+  },
+  "roleFilterUser": {
+    "message": "Користувач"
+  },
+  "roleFilterAssistant": {
+    "message": "ChatGPT"
+  },
   "tocHeading": {
     "message": "Зміст гілки"
   },
