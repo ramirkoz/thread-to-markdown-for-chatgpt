@@ -3,7 +3,7 @@
     "message": "Thread to Markdown for ChatGPT"
   },
   "extensionDescription": {
-    "message": "Export selected ChatGPT messages locally as Markdown, HTML, PDF, plain text, or JSON."
+    "message": "Export selected ChatGPT messages locally as Markdown, HTML, PDF, ZIP, plain text, or JSON."
   },
   "actionTitle": {
     "message": "Export ChatGPT thread"
@@ -47,6 +47,9 @@
   "formatPdf": {
     "message": "PDF (guided print)"
   },
+  "formatZip": {
+    "message": "Portable package (.zip)"
+  },
   "formatText": {
     "message": "Plain text (.txt)"
   },
@@ -76,6 +79,9 @@
   },
   "pdfReadyStatus": {
     "message": "PDF preparation page opened. Use its button, then turn off Headers and footers in More settings."
+  },
+  "zipSuccessStatus": {
+    "message": "Saved $1. Included files: $2; skipped files: $3."
   },
   "clipboardError": {
     "message": "The selected messages could not be copied."
