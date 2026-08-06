@@ -68,6 +68,7 @@ jobs:
           language_export = (root / 'language-export.js').read_text()
           pdf_export = (root / 'pdf-export.js').read_text()
           print_html = (root / 'print.html').read_text()
+          print_css = (root / 'print.css').read_text()
           print_js = (root / 'print.js').read_text()
 
           assert 'value="html"' in html
@@ -81,6 +82,13 @@ jobs:
           assert 'chrome.tabs.create' in pdf_export
           assert 'print.js' in print_html
           assert 'window.print()' in print_js
+          assert "printButton?.addEventListener('click'" in print_js
+          assert 'setTimeout(() => window.print()' not in print_js
+          assert 'Headers and footers' in print_js
+          assert 'Колонтитули' in print_js
+          assert 'print-guide' in print_js
+          assert '.print-guide' in print_css
+          assert '.print-guide{display:none!important}' in print_css
 
           keys = set(re.findall(r'data-i18n="([^"]+)"', html))
           keys.update(re.findall(r"getMessage\('([^']+)'", js))
