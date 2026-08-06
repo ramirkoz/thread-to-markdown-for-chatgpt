@@ -23,6 +23,7 @@
 - Added detection for icon-only download controls implemented as tabindex, delegated, or cursor-pointer elements rather than normal buttons.
 - Added geometric matching between a generated filename and the adjacent ChatGPT download control.
 - Added clean generated-file bridges that do not inflate attachment-card counts or create false package-limit notices.
+- Preserved full Unicode attachment filenames from ChatGPT labels instead of saving truncated names that begin with an underscore.
 - Added ZIP structure and CRC validation to CI.
 - Added HTML, PDF, and ZIP localization.
 - Kept local processing and the existing minimum permissions.
