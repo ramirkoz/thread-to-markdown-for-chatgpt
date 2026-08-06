@@ -74,3 +74,4 @@ importScripts('package-export.js');
 importScripts('attachment-export-fix.js');
 importScripts('attachment-preview-filter.js');
 importScripts('attachment-relative-url-fix.js');
+importScripts('attachment-resource-fallback.js');
