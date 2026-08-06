@@ -1,0 +1,60 @@
+name: Validate self-contained output card
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate self-contained download control binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-output-card-self-contained-fix.js
+
+          python - <<'PY'
+          from pathlib import Path
+
+          module = Path('extension/attachment-output-card-self-contained-fix.js').read_text()
+          entry = Path('extension/background-entry.js').read_text()
+
+          assert 'annotateAssistantOutputCardsSelfContained' in module
+          assert 'data-thread-export-download-button' in module
+          assert 'thread-export-download-file' in module
+          assert "element.setAttribute('role', 'button')" in module
+          assert 'interactiveCardBaseAnnotate' not in module
+          assert 'outputCardButtonBaseAnnotate' not in module
+          assert "importScripts('attachment-output-card-self-contained-fix.js')" in entry
+          assert entry.index("importScripts('attachment-output-card-interactive-fix.js')") < entry.index(
+              "importScripts('attachment-output-card-self-contained-fix.js')"
+          )
+
+          print('Self-contained generated file binding: PASS')
+          PY
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const source = fs.readFileSync(
+            'extension/attachment-output-card-self-contained-fix.js',
+            'utf8'
+          );
+          const context = { annotateAssistantOutputCards() {} };
+          vm.createContext(context);
+          vm.runInContext(source, context);
+          const injectedSource = context.annotateAssistantOutputCards.toString();
+          new Function(`return (${injectedSource});`)();
+          if (!injectedSource.includes('annotateAssistantOutputCardsSelfContained')) {
+            throw new Error('Injected function was not replaced.');
+          }
+          NODE
