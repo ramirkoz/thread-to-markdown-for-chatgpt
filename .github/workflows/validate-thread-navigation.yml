@@ -1,0 +1,88 @@
+name: Validate thread navigation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate searchable thread contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/popup.js
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('extension')
+          manifest = json.loads((root / 'manifest.json').read_text())
+          html = (root / 'popup.html').read_text()
+          css = (root / 'popup.css').read_text()
+          js = (root / 'popup.js').read_text()
+
+          assert manifest['version'] == '1.7.0'
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
+          assert 'host_permissions' not in manifest
+
+          for marker in (
+              'id="message-search"',
+              'data-i18n-placeholder="searchMessagesPlaceholder"',
+              'id="search-count"',
+              'data-i18n="tocHeading"',
+          ):
+              assert marker in html, marker
+
+          for marker in (
+              'applyMessageFilter',
+              'normalizeSearchText',
+              'navigateToMessage',
+              'scrollToConversationMessage',
+              'scrollIntoView',
+              'data-message-author-role',
+              'message-open',
+              'searchResultCount',
+          ):
+              assert marker in js, marker
+
+          for marker in (
+              '.navigation-tools',
+              '.search-field',
+              '.toc-summary',
+              '.message-number',
+              '.message-open',
+              '.empty-search',
+          ):
+              assert marker in css, marker
+
+          required_messages = {
+              'searchMessagesLabel',
+              'searchMessagesPlaceholder',
+              'tocHeading',
+              'searchResultCount',
+              'noSearchResults',
+              'openMessageButton',
+              'navigatingStatus',
+              'messageOpenedStatus',
+              'messageNotFoundError',
+              'emptyMessagePreview',
+          }
+
+          for locale in ('en', 'uk'):
+              messages = json.loads((root / '_locales' / locale / 'messages.json').read_text())
+              missing = sorted(required_messages - messages.keys())
+              assert not missing, f'{locale} missing navigation translations: {missing}'
+
+          print('Thread navigation validation: PASS')
+          PY
