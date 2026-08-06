@@ -115,7 +115,7 @@ function selectedIndices() {
 }
 
 function selectedFormat() {
-  return ['markdown', 'text', 'json'].includes(formatSelect.value)
+  return ['markdown', 'html', 'text', 'json'].includes(formatSelect.value)
     ? formatSelect.value
     : 'markdown';
 }
@@ -238,6 +238,7 @@ async function writeClipboard(text) {
 function formatDisplayName(format) {
   const keyByFormat = {
     markdown: 'formatMarkdown',
+    html: 'formatHtml',
     text: 'formatText',
     json: 'formatJson'
   };
