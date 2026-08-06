@@ -17,6 +17,7 @@
   }
 
   async function locateConversationMessage(descriptor = {}) {
+    const highlightSelector = '[data-thread-export-navigation-highlight="true"]';
     const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
     const normalize = (value) => String(value || '')
       .normalize('NFKC')
@@ -45,7 +46,7 @@
     }
 
     function clearNavigationHighlights() {
-      document.querySelectorAll(HIGHLIGHT_SELECTOR).forEach(restoreHighlight);
+      document.querySelectorAll(highlightSelector).forEach(restoreHighlight);
     }
 
     function conversationRoots() {
@@ -55,14 +56,15 @@
         'article',
         '[class*="group/conversation-turn"]'
       ];
+      const selector = selectors.join(',');
       const roots = [];
       const seen = new Set();
 
       const add = (candidate) => {
         if (!(candidate instanceof HTMLElement)) return;
-        const root = candidate.matches(selectors.join(','))
+        const root = candidate.matches(selector)
           ? candidate
-          : candidate.closest(selectors.join(',')) || candidate;
+          : candidate.closest(selector) || candidate;
         if (!(root instanceof HTMLElement) || seen.has(root)) return;
         const text = normalize(root.innerText || root.textContent);
         if (!text) return;
@@ -70,7 +72,7 @@
         roots.push(root);
       };
 
-      document.querySelectorAll(selectors.join(',')).forEach(add);
+      document.querySelectorAll(selector).forEach(add);
       document.querySelectorAll('[data-message-author-role]').forEach(add);
 
       roots.sort((left, right) => {
@@ -242,4 +244,5 @@
   navigateToMessage = navigateToResolvedMessage;
   globalThis.navigateToMessage = navigateToResolvedMessage;
   globalThis.scrollToConversationMessage = locateConversationMessage;
+  void HIGHLIGHT_SELECTOR;
 })();
