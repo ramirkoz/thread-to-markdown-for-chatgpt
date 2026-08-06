@@ -26,6 +26,7 @@ jobs:
           node --check extension/language-export.js
           node --check extension/pdf-export.js
           node --check extension/package-export.js
+          node --check extension/attachment-export-fix.js
           node --check extension/print.js
           node --check extension/popup.js
 
@@ -50,6 +51,7 @@ jobs:
               root / 'language-export.js',
               root / 'pdf-export.js',
               root / 'package-export.js',
+              root / 'attachment-export-fix.js',
               root / 'print.html',
               root / 'print.css',
               root / 'print.js',
@@ -71,6 +73,7 @@ jobs:
           language_export = (root / 'language-export.js').read_text()
           pdf_export = (root / 'pdf-export.js').read_text()
           package_export = (root / 'package-export.js').read_text()
+          attachment_fix = (root / 'attachment-export-fix.js').read_text()
           print_html = (root / 'print.html').read_text()
           print_css = (root / 'print.css').read_text()
           print_js = (root / 'print.js').read_text()
@@ -89,12 +92,18 @@ jobs:
           assert 'printDialog: true' in pdf_export
           assert 'chrome.tabs.create' in pdf_export
           assert "importScripts('package-export.js')" in background_entry
+          assert "importScripts('attachment-export-fix.js')" in background_entry
           assert "value === 'zip'" in package_export
           assert 'collectPortableAssets' in package_export
           assert 'createStoredZip' in package_export
           assert 'manifest.json' in package_export
           assert 'conversation.html' in package_export
           assert 'conversation.md' in package_export
+          assert 'collectFileCardAttachments' in attachment_fix
+          assert 'mergeCapturedAssets' in attachment_fix
+          assert '[role="button"]' in attachment_fix
+          assert '[data-testid*="attachment"]' in attachment_fix
+          assert 'The file card was detected' in attachment_fix
           assert 'print.js' in print_html
           assert 'window.print()' in print_js
           assert "printButton?.addEventListener('click'" in print_js
@@ -174,6 +183,7 @@ jobs:
           (cd extension && zip -qr /tmp/thread-to-markdown.zip .)
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'manifest.json'
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'package-export.js'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'attachment-export-fix.js'
 
       - name: Build development packages
         if: github.event_name == 'push'
