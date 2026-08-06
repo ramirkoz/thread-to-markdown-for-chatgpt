@@ -55,7 +55,7 @@ mainWorldUnresolvedDescriptors = function mainWorldDescriptorsWithOutputIndices(
       .find(Number.isInteger);
 
     return Number.isInteger(mappedIndex)
-      ? { ...descriptor, messageIndex: mappedIndex }
+      ? { ...descriptor, targetMessageIndex: mappedIndex }
       : descriptor;
   });
 };
