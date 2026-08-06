@@ -1,0 +1,41 @@
+name: Validate output index mapping
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate generated file turn mapping
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-output-index-fix.js
+
+          python - <<'PY'
+          from pathlib import Path
+
+          module = Path('extension/attachment-output-index-fix.js').read_text()
+          entry = Path('extension/background-entry.js').read_text()
+
+          assert 'collectAssistantOutputMessageIndices' in module
+          assert 'mainWorldDescriptorsWithOutputIndices' in module
+          assert 'args: [null]' in module
+          assert 'outputIndexMap.set' in module
+          assert "importScripts('attachment-output-index-fix.js')" in entry
+          assert entry.index("importScripts('attachment-output-card-self-contained-fix.js')") < entry.index(
+              "importScripts('attachment-output-index-fix.js')"
+          )
+
+          print('Generated file turn index mapping: PASS')
+          PY
