@@ -1,0 +1,43 @@
+name: Validate output proxy capture
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate assistant output proxy capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-output-proxy-fix.js
+
+          python - <<'PY'
+          from pathlib import Path
+
+          root = Path('extension')
+          source = (root / 'attachment-output-proxy-fix.js').read_text()
+          entry = (root / 'background-entry.js').read_text()
+
+          assert "importScripts('attachment-output-proxy-fix.js')" in entry
+          assert 'data-thread-export-proxy' in source
+          assert 'data-thread-export-filename' in source
+          assert 'createProxy' in source
+          assert 'resourceSnapshot' in source
+          assert "element.click?.()" in source
+          assert "[class*=\"cursor-pointer\"]" in source
+          assert 'normalize(\'NFKC\')' in source
+          assert 'Резюме' not in source
+
+          print('Assistant output proxy validation: PASS')
+          PY
