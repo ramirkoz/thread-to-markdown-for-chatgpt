@@ -1,6 +1,16 @@
 # Changelog
 
-## 1.6.0 — Unreleased
+## 1.7.0 — Unreleased
+
+- Started the 1.7.0 development cycle without submitting an intermediate Chrome Web Store update.
+- Added a searchable thread contents panel to the extension popup.
+- Added numbered message entries with role and text previews.
+- Added one-click navigation from the popup to the matching message in the open ChatGPT conversation.
+- Added temporary visual highlighting for the opened message.
+- Added English and Ukrainian localization for search, contents, navigation, empty results, and navigation errors.
+- Kept local processing and the existing minimum permissions.
+
+## 1.6.0 — 2026-08-06
 
 - Started the 1.6.0 development cycle without submitting an intermediate Chrome Web Store update.
 - Added self-contained HTML export for selected messages.
@@ -24,10 +34,11 @@
 - Added geometric matching between a generated filename and the adjacent ChatGPT download control.
 - Added clean generated-file bridges that do not inflate attachment-card counts or create false package-limit notices.
 - Preserved full Unicode attachment filenames from ChatGPT labels instead of saving truncated names that begin with an underscore.
+- Added click-safe relative links for attachment filenames containing spaces or Unicode characters in packaged HTML.
 - Added ZIP structure and CRC validation to CI.
 - Added HTML, PDF, and ZIP localization.
 - Kept local processing and the existing minimum permissions.
-- Manual browser validation passed for HTML, PDF print output, image capture, ZIP integrity, Unicode filenames, ordinary PDF attachments, and assistant-generated downloadable PDFs.
+- Manual browser validation passed for HTML, PDF print output, image capture, ZIP integrity, Unicode filenames, clickable attachment links, ordinary PDF attachments, and assistant-generated downloadable PDFs.
 
 ## 1.5.0 — 2026-08-06
 
