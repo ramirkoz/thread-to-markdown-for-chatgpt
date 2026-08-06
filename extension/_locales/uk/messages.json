@@ -3,7 +3,7 @@
     "message": "Гілка ChatGPT у Markdown"
   },
   "extensionDescription": {
-    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT, а також зберігає локальну бібліотеку промптів."
+    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT, зберігає локальні промпти й передає виділений текст у ChatGPT."
   },
   "actionTitle": {
     "message": "Експортувати гілку ChatGPT"
@@ -19,6 +19,45 @@
   },
   "privacyText": {
     "message": "Сторінка обробляється лише на вашому пристрої. Розробнику нічого не надсилається."
+  },
+  "sendSelectionHeading": {
+    "message": "Передати виділений текст у ChatGPT"
+  },
+  "sendSelectionDescription": {
+    "message": "Виділіть текст на поточній сторінці. Він буде вставлений у новий чат без автоматичного надсилання."
+  },
+  "sendSelectionButton": {
+    "message": "Вставити виділений текст"
+  },
+  "selectionReadingStatus": {
+    "message": "Зчитуємо виділений текст…"
+  },
+  "chatGptPermissionDeniedError": {
+    "message": "Не надано дозвіл на вставлення тексту в ChatGPT."
+  },
+  "selectionUnavailableError": {
+    "message": "На цій сторінці неможливо прочитати виділений текст."
+  },
+  "selectionEmptyError": {
+    "message": "Спочатку виділіть текст на сторінці."
+  },
+  "selectionTooLongError": {
+    "message": "Виділений текст довший за $1 символів. Скоротіть виділення."
+  },
+  "openingChatGptStatus": {
+    "message": "Відкриваємо новий чат ChatGPT…"
+  },
+  "chatGptOpenError": {
+    "message": "Не вдалося відкрити ChatGPT."
+  },
+  "chatGptComposerError": {
+    "message": "Не вдалося знайти поле повідомлення ChatGPT."
+  },
+  "selectionInsertedStatus": {
+    "message": "Текст вставлено в ChatGPT. Перевірте його та надішліть вручну."
+  },
+  "chatGptLoadTimeoutError": {
+    "message": "ChatGPT завантажується надто довго."
   },
   "exportButton": {
     "message": "Експортувати вибране"
