@@ -7,7 +7,8 @@
 - Added numbered message entries with role and text previews.
 - Added one-click navigation from the popup to the matching message in the open ChatGPT conversation.
 - Added temporary visual highlighting for the opened message.
-- Added English and Ukrainian localization for search, contents, navigation, empty results, and navigation errors.
+- Added previous and next controls for cycling through filtered search results, including Enter and Shift+Enter shortcuts.
+- Added English and Ukrainian localization for search, contents, result position, navigation, empty results, and navigation errors.
 - Kept local processing and the existing minimum permissions.
 
 ## 1.6.0 — 2026-08-06
