@@ -21,10 +21,12 @@
 - Added an assistant-output proxy that activates hidden, delegated, or nearby download controls when a generated filename is rendered as plain text.
 - Added direct binding between assistant-generated filenames and the compact file-card download icon rendered beside the filename.
 - Added detection for icon-only download controls implemented as tabindex, delegated, or cursor-pointer elements rather than normal buttons.
+- Added geometric matching between a generated filename and the adjacent ChatGPT download control.
+- Added clean generated-file bridges that do not inflate attachment-card counts or create false package-limit notices.
 - Added ZIP structure and CRC validation to CI.
 - Added HTML, PDF, and ZIP localization.
 - Kept local processing and the existing minimum permissions.
-- Manual image capture and Unicode filename detection passed; assistant-output download-button byte capture remains under manual validation.
+- Manual browser validation passed for HTML, PDF print output, image capture, ZIP integrity, Unicode filenames, ordinary PDF attachments, and assistant-generated downloadable PDFs.
 
 ## 1.5.0 — 2026-08-06
 
