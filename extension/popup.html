@@ -29,6 +29,14 @@
       <button id="send-selection-to-chatgpt" class="send-selection-button" type="button" data-i18n="sendSelectionButton">Insert selected text</button>
     </section>
 
+    <section id="webpage-handoff" class="webpage-handoff">
+      <div>
+        <strong data-i18n="sendWebpageHeading">Send current webpage to ChatGPT</strong>
+        <p data-i18n="sendWebpageDescription">The page title, address, and cleaned main text will be inserted into a new chat without being sent automatically.</p>
+      </div>
+      <button id="send-webpage-to-chatgpt" class="send-webpage-button" type="button" data-i18n="sendWebpageButton">Insert current webpage</button>
+    </section>
+
     <section id="selection" class="selection" hidden>
       <div class="selection-head">
         <div>
@@ -154,5 +162,6 @@
   <script src="search-navigation.js"></script>
   <script src="prompt-library.js"></script>
   <script src="selected-text-to-chatgpt.js"></script>
+  <script src="webpage-to-chatgpt.js"></script>
 </body>
 </html>
