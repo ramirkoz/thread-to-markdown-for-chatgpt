@@ -8,6 +8,7 @@
 - Added one-click navigation from the popup to the matching message in the open ChatGPT conversation.
 - Added temporary visual highlighting for the opened message.
 - Added previous and next controls for cycling through filtered search results, including Enter and Shift+Enter shortcuts.
+- Kept only one active ChatGPT message highlight by clearing the previous marker before each navigation step.
 - Added English and Ukrainian localization for search, contents, result position, navigation, empty results, and navigation errors.
 - Kept local processing and the existing minimum permissions.
 
