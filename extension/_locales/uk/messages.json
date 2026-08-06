@@ -3,7 +3,7 @@
     "message": "Гілка ChatGPT у Markdown"
   },
   "extensionDescription": {
-    "message": "Експортує вибрані повідомлення ChatGPT локально у Markdown, HTML, PDF, ZIP, звичайний текст або JSON."
+    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT локально у Markdown, HTML, PDF, ZIP, звичайний текст або JSON."
   },
   "actionTitle": {
     "message": "Експортувати гілку ChatGPT"
@@ -34,6 +34,36 @@
   },
   "clearAllButton": {
     "message": "Очистити"
+  },
+  "searchMessagesLabel": {
+    "message": "Пошук повідомлень"
+  },
+  "searchMessagesPlaceholder": {
+    "message": "Пошук за текстом або роллю"
+  },
+  "tocHeading": {
+    "message": "Зміст гілки"
+  },
+  "searchResultCount": {
+    "message": "Показано $1 із $2"
+  },
+  "noSearchResults": {
+    "message": "Відповідних повідомлень не знайдено."
+  },
+  "openMessageButton": {
+    "message": "Відкрити повідомлення $1 у ChatGPT"
+  },
+  "navigatingStatus": {
+    "message": "Відкриваємо повідомлення $1…"
+  },
+  "messageOpenedStatus": {
+    "message": "Повідомлення $1 відкрито в розмові."
+  },
+  "messageNotFoundError": {
+    "message": "Повідомлення не знайдено на сторінці. Оновіть ChatGPT і повторіть спробу."
+  },
+  "emptyMessagePreview": {
+    "message": "Порожнє повідомлення"
   },
   "formatLabel": {
     "message": "Формат"
