@@ -10,28 +10,29 @@ A small, privacy-first Chrome extension that exports the ChatGPT conversation cu
 
 Chrome Web Store extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
 
-The current Chrome Web Store version is 1.4.0.
+The current Chrome Web Store version is 1.4.0. Development continues in this repository; the store package will be updated after the planned feature set is complete and tested.
 
 ## What it does
 
 - Loads user and assistant messages from the open conversation.
 - Lets the user select individual messages before export.
-- Exports selected messages as Markdown, plain text, or JSON.
+- Exports selected messages as Markdown, HTML, plain text, or JSON.
 - Copies selected messages to the clipboard locally.
 - Preserves headings, lists, tables, links, emphasis, quotes, inline code, and fenced code blocks in structured exports.
+- Creates a self-contained, print-friendly HTML document without external scripts or styles.
 - Adds the conversation title, export time, source URL, and safe filename.
 - Works only after an explicit user action.
 - Processes everything locally. No telemetry, tracking, server, or account is used.
 
-## Version 1.5.0 release candidate
+## Development version 1.6.0
 
-The repository version is 1.5.0 and has completed automated validation plus manual browser checks for message selection, Markdown/TXT/JSON export, clipboard copying, structured formatting, link cleanup, and removal of ChatGPT interface labels.
+Version 1.5.0 completed message selection, Markdown/TXT/JSON export, clipboard copying, structured formatting, link cleanup, and removal of ChatGPT interface labels.
 
-Chrome Web Store 1.4.0 remains the public stable version until 1.5.0 is submitted and approved.
+Version 1.6.0 development has started with self-contained HTML export. PDF, embedded images, attachments, and ZIP packaging remain in the 1.6.0 roadmap.
 
 ## Install from source
 
-1. Download and extract the source archive.
+1. Download and extract the repository source archive.
 2. Open `chrome://extensions`.
 3. Enable **Developer mode**.
 4. Select **Load unpacked**.
@@ -52,16 +53,13 @@ The extension requests no broad host permissions and performs no network request
 
 See [PRIVACY.md](PRIVACY.md). Conversation content stays on the user's device and is not sent to the developer or third parties.
 
-## Version 1.5.0 highlights
+## Development roadmap
 
-- Compact preview of detected messages.
-- Individual selection, Select all, and Clear controls.
-- Markdown, TXT, and JSON formats.
-- Local clipboard copying.
-- Structured preservation of tables, lists, headings, links, quotes, and code.
-- Cleanup of empty list items, temporary attachment links, citation labels, and ChatGPT interface controls.
-- English and Ukrainian localization.
-- Minimum permissions only.
+- **1.6.0:** HTML/PDF, images, attachments, ZIP.
+- **1.7.0:** Navigation, search, and table of contents.
+- **1.8.0:** Local prompt library.
+- **1.9.0:** Send selected text, pages, screenshots, and YouTube subtitles into ChatGPT.
+- **2.0.0:** Folders, tags, notes, bulk export, and backups.
 
 ## Support development
 
