@@ -23,6 +23,7 @@ jobs:
           node --check extension/popup.js
           node --check extension/search-navigation.js
           node --check extension/navigation-highlight-fix.js
+          node --check extension/role-filter.js
 
           python - <<'PY'
           import json
@@ -35,6 +36,7 @@ jobs:
           js = (root / 'popup.js').read_text()
           search_js = (root / 'search-navigation.js').read_text()
           highlight_js = (root / 'navigation-highlight-fix.js').read_text()
+          role_filter_js = (root / 'role-filter.js').read_text()
 
           assert manifest['version'] == '1.7.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
@@ -45,10 +47,15 @@ jobs:
               'data-i18n-placeholder="searchMessagesPlaceholder"',
               'id="search-count"',
               'data-i18n="tocHeading"',
+              'id="role-filter"',
+              'data-role-filter="all"',
+              'data-role-filter="user"',
+              'data-role-filter="assistant"',
               'id="previous-search-result"',
               'id="next-search-result"',
               'id="search-position"',
               'src="navigation-highlight-fix.js"',
+              'src="role-filter.js"',
               'src="search-navigation.js"',
           ):
               assert marker in html, marker
@@ -81,15 +88,29 @@ jobs:
               'clearNavigationHighlights',
               'data-thread-export-navigation-highlight',
               'threadExportNavigationToken',
-              'restoreHighlight',
-              'globalThis.scrollToConversationMessage',
+              'locateConversationMessage',
+              'descriptorFor',
           ):
               assert marker in highlight_js, marker
+
+          for marker in (
+              'applyRoleFilter',
+              'roleForItem',
+              'data-role-filter',
+              "activeRole = 'all'",
+              'aria-pressed',
+              'roleFilterLabel',
+              'roleFilterAssistant',
+          ):
+              assert marker in role_filter_js, marker
 
           for marker in (
               '.navigation-tools',
               '.search-field',
               '.toc-summary',
+              '.role-filter',
+              '.role-filter-button',
+              '.role-filter-button.active',
               '.result-navigation',
               '.result-nav-button',
               '#search-position',
@@ -103,6 +124,10 @@ jobs:
           required_messages = {
               'searchMessagesLabel',
               'searchMessagesPlaceholder',
+              'roleFilterLabel',
+              'roleFilterAll',
+              'roleFilterUser',
+              'roleFilterAssistant',
               'tocHeading',
               'searchResultCount',
               'noSearchResults',
