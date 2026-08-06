@@ -65,3 +65,5 @@ function stripMarkdownDecoration(value) {
     .replace(/[*_`~]/g, '')
     .trim();
 }
+
+importScripts('html-export.js');
