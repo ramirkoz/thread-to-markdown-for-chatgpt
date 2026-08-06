@@ -13,15 +13,15 @@ header p { margin: 4px 0 0; color: #475569; font-size: 13px; line-height: 1.45; 
 #thread-title { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 #selection-count { display: block; margin-top: 2px; color: #64748b; font-size: 11px; }
 .selection-actions { display: flex; gap: 8px; flex: 0 0 auto; }
-button, select, input { font: inherit; }
+button, select, input, textarea { font: inherit; }
 button { cursor: pointer; }
 .primary, .secondary { width: 100%; border-radius: 9px; padding: 11px 14px; font-weight: 700; }
 .primary { border: 0; background: #166534; color: white; }
 .primary:hover { background: #14532d; }
 .secondary { border: 1px solid #166534; background: white; color: #166534; }
 .secondary:hover { background: #f0fdf4; }
-.primary:focus-visible, .secondary:focus-visible, .text-button:focus-visible, .message-open:focus-visible, .result-nav-button:focus-visible, .role-filter-button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
-.primary:disabled, .secondary:disabled, .text-button:disabled, .message-open:disabled, .result-nav-button:disabled, .role-filter-button:disabled, select:disabled, input:disabled { opacity: .55; cursor: not-allowed; }
+.primary:focus-visible, .secondary:focus-visible, .text-button:focus-visible, .message-open:focus-visible, .result-nav-button:focus-visible, .role-filter-button:focus-visible, .prompt-add:focus-visible, .prompt-action:focus-visible, .prompt-cancel:focus-visible, .prompt-save:focus-visible, summary:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
+.primary:disabled, .secondary:disabled, .text-button:disabled, .message-open:disabled, .result-nav-button:disabled, .role-filter-button:disabled, .prompt-add:disabled, .prompt-action:disabled, .prompt-cancel:disabled, .prompt-save:disabled, select:disabled, input:disabled, textarea:disabled { opacity: .55; cursor: not-allowed; }
 .text-button { border: 0; padding: 2px 0; background: transparent; color: #166534; font-size: 11px; font-weight: 700; }
 .text-button:hover:not(:disabled) { text-decoration: underline; }
 .navigation-tools { margin: 0 0 8px; }
@@ -58,6 +58,39 @@ button { cursor: pointer; }
 .output-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
 .output-row label { color: #334155; font-size: 11px; font-weight: 700; }
 .output-row select { min-width: 170px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 7px 30px 7px 9px; background: white; color: #0f172a; font-size: 12px; }
+.prompt-library { margin: 12px 0; border: 1px solid #dbeafe; border-radius: 10px; background: white; }
+.prompt-library > summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 12px; color: #1e3a8a; font-size: 12px; font-weight: 800; cursor: pointer; list-style: none; }
+.prompt-library > summary::-webkit-details-marker { display: none; }
+.prompt-library > summary::before { content: '▸'; margin-right: 7px; color: #2563eb; }
+.prompt-library[open] > summary::before { content: '▾'; }
+.prompt-library > summary > span:first-child { flex: 1; }
+#prompt-count { min-width: 24px; border-radius: 999px; padding: 2px 7px; background: #dbeafe; color: #1d4ed8; font-size: 10px; text-align: center; }
+.prompt-library-body { padding: 0 12px 12px; border-top: 1px solid #eff6ff; }
+.prompt-library-note { margin: 10px 0; color: #64748b; font-size: 10px; line-height: 1.4; }
+.prompt-search-field, .prompt-form label { display: block; }
+.prompt-search-field > span, .prompt-form label > span { display: block; margin-bottom: 4px; color: #334155; font-size: 10px; font-weight: 700; }
+.prompt-search-field input, .prompt-form input, .prompt-form textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 9px; background: white; color: #0f172a; font-size: 11px; }
+.prompt-form textarea { resize: vertical; min-height: 112px; line-height: 1.45; }
+.prompt-search-field input::placeholder, .prompt-form input::placeholder, .prompt-form textarea::placeholder { color: #94a3b8; }
+.prompt-empty { margin: 10px 0 0; padding: 12px; border: 1px dashed #cbd5e1; border-radius: 8px; color: #64748b; font-size: 10px; text-align: center; }
+.prompt-list { display: grid; gap: 7px; max-height: 250px; margin-top: 10px; overflow-y: auto; }
+.prompt-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px; background: #f8fafc; }
+.prompt-card-text strong { display: block; overflow: hidden; color: #1e293b; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.prompt-card-text p { display: -webkit-box; margin: 4px 0 0; overflow: hidden; color: #475569; font-size: 10px; line-height: 1.4; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.prompt-actions { display: flex; gap: 6px; margin-top: 8px; }
+.prompt-action { border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 7px; background: white; color: #334155; font-size: 9px; font-weight: 700; }
+.prompt-action:hover:not(:disabled) { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
+.prompt-action-delete:hover:not(:disabled) { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+.prompt-add { width: 100%; margin-top: 10px; border: 1px solid #2563eb; border-radius: 8px; padding: 8px 10px; background: white; color: #1d4ed8; font-size: 11px; font-weight: 800; }
+.prompt-add:hover:not(:disabled) { background: #eff6ff; }
+.prompt-form { display: grid; gap: 9px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
+.prompt-form[hidden] { display: none; }
+.prompt-form-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.prompt-cancel, .prompt-save { border-radius: 8px; padding: 8px 10px; font-size: 10px; font-weight: 800; }
+.prompt-cancel { border: 1px solid #cbd5e1; background: white; color: #475569; }
+.prompt-save { border: 0; background: #1d4ed8; color: white; }
+.prompt-cancel:hover:not(:disabled) { background: #f8fafc; }
+.prompt-save:hover:not(:disabled) { background: #1e40af; }
 .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 #status { min-height: 36px; margin: 11px 0 0; color: #475569; font-size: 12px; line-height: 1.45; }
 #status.success { color: #166534; }
