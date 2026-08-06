@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.5.0 — Unreleased
+## 1.5.0 — 2026-08-06 release candidate
 
 - Added compact previews for detected ChatGPT messages.
 - Added individual message selection before export.
@@ -10,13 +10,14 @@
 - Added local clipboard copying for the selected messages.
 - Preserved headings, links, emphasis, blockquotes, ordered and unordered lists, nested lists, tables, inline code, and fenced code blocks in Markdown exports.
 - Added the structured Markdown representation to JSON exports while keeping plain text for compatibility.
-- Preserved attachment and download labels instead of dropping button-based links.
+- Preserved attachment and download labels while avoiding unusable temporary links.
 - Added spacing between adjacent source badges and citation labels.
 - Removed empty list markers created by unsupported or control-only elements.
 - Removed ChatGPT service labels such as quote and code-copy controls from Markdown and JSON exports.
 - Kept local processing and the existing minimum permissions.
-- Added automated validation for JavaScript, localization, permissions, and package structure.
-- Changed release publishing so it runs only from version tags.
+- Added automated validation for JavaScript, localization, permissions, package structure, and the background service-worker entry point.
+- Added automatic release-candidate package generation with Chrome Web Store ZIP, source ZIP, and SHA-256 checksums.
+- Kept release publishing restricted to matching version tags.
 
 ## 1.4.0 — 2026-08-02
 
