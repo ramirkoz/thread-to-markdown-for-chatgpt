@@ -3,7 +3,7 @@
     "message": "Гілка ChatGPT у Markdown"
   },
   "extensionDescription": {
-    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT, зберігає локальні промпти й передає виділений текст у ChatGPT."
+    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT, зберігає локальні промпти й передає виділений текст або вебсторінку в ChatGPT."
   },
   "actionTitle": {
     "message": "Експортувати гілку ChatGPT"
@@ -58,6 +58,42 @@
   },
   "chatGptLoadTimeoutError": {
     "message": "ChatGPT завантажується надто довго."
+  },
+  "sendWebpageHeading": {
+    "message": "Передати поточну вебсторінку в ChatGPT"
+  },
+  "sendWebpageDescription": {
+    "message": "Заголовок, адреса та очищений основний текст сторінки будуть вставлені в новий чат без автоматичного надсилання."
+  },
+  "sendWebpageButton": {
+    "message": "Вставити поточну вебсторінку"
+  },
+  "webpageReadingStatus": {
+    "message": "Зчитуємо поточну вебсторінку…"
+  },
+  "webpageUnavailableError": {
+    "message": "На цій сторінці неможливо прочитати вміст."
+  },
+  "webpageEmptyError": {
+    "message": "На сторінці не знайдено придатного для читання тексту."
+  },
+  "webpageTooLongError": {
+    "message": "Підготовлений вміст сторінки довший за $1 символів."
+  },
+  "webpageInsertedStatus": {
+    "message": "Вебсторінку вставлено в ChatGPT. Перевірте текст і надішліть вручну."
+  },
+  "webpagePromptTitle": {
+    "message": "Заголовок"
+  },
+  "webpagePromptSource": {
+    "message": "Джерело"
+  },
+  "webpagePromptContent": {
+    "message": "Вміст сторінки"
+  },
+  "webpageTruncatedNote": {
+    "message": "[Текст сторінки скорочено відповідно до ліміту.]"
   },
   "exportButton": {
     "message": "Експортувати вибране"
