@@ -5,7 +5,10 @@
 - Started the 1.6.0 development cycle without submitting an intermediate Chrome Web Store update.
 - Added self-contained HTML export for selected messages.
 - Added automatic HTML document-language detection for Ukrainian, Russian, and English content.
-- Added a local PDF workflow that opens Chrome's print dialog with a print-ready document and no new permissions.
+- Added a local PDF workflow that opens a print-ready document with no new permissions.
+- Added a guided PDF preparation page instead of opening the print dialog automatically.
+- Added explicit steps to disable Chrome Headers and footers before saving, removing the date, extension URL, and page counters from clean PDFs.
+- Kept the PDF instruction panel hidden from the printed document and allowed reopening the print dialog if settings need correction.
 - Added print styling for long messages, tables, code blocks, links, and images.
 - Added HTML and PDF localization.
 - Kept local processing and the existing minimum permissions.
