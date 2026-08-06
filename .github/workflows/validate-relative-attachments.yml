@@ -1,0 +1,45 @@
+name: Validate relative attachments
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - extension/attachment-relative-url-fix.js
+      - extension/background-entry.js
+      - .github/workflows/validate-relative-attachments.yml
+  pull_request:
+    paths:
+      - extension/attachment-relative-url-fix.js
+      - extension/background-entry.js
+      - .github/workflows/validate-relative-attachments.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate relative attachment capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-relative-url-fix.js
+          python - <<'PY'
+          from pathlib import Path
+
+          entry = Path('extension/background-entry.js').read_text()
+          source = Path('extension/attachment-relative-url-fix.js').read_text()
+
+          assert "importScripts('attachment-relative-url-fix.js')" in entry
+          assert "new URL(raw, location.href)" in source
+          assert "'a[href]'" in source
+          assert "'[data-download-url]'" in source
+          assert 'collectRelativeAttachmentCards' in source
+          assert 'buildPortablePackage' in source
+          print('Relative attachment validation: PASS')
+          PY
