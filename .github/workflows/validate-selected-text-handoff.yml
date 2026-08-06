@@ -1,0 +1,105 @@
+name: Validate selected-text handoff
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate selected-text handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/selected-text-to-chatgpt.js
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('extension')
+          manifest = json.loads((root / 'manifest.json').read_text())
+          html = (root / 'popup.html').read_text()
+          css = (root / 'popup.css').read_text()
+          js = (root / 'selected-text-to-chatgpt.js').read_text()
+
+          assert manifest['version'] == '1.9.0'
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
+          assert 'host_permissions' not in manifest
+          assert manifest['optional_host_permissions'] == ['https://chatgpt.com/*']
+
+          for marker in (
+              'id="selected-text-handoff"',
+              'id="send-selection-to-chatgpt"',
+              'data-i18n="sendSelectionHeading"',
+              'data-i18n="sendSelectionDescription"',
+              'data-i18n="sendSelectionButton"',
+              'src="selected-text-to-chatgpt.js"',
+          ):
+              assert marker in html, marker
+
+          for marker in (
+              "const CHATGPT_ORIGIN = 'https://chatgpt.com/*'",
+              "const CHATGPT_URL = 'https://chatgpt.com/'",
+              'chrome.permissions.contains',
+              'chrome.permissions.request',
+              'chrome.tabs.create',
+              'chrome.tabs.onUpdated',
+              'chrome.scripting.executeScript',
+              'readPageSelection',
+              'insertIntoChatGptComposer',
+              "'#prompt-textarea'",
+              "'[data-testid=\"prompt-textarea\"]'",
+              "'form [contenteditable=\"true\"]'",
+              'document.execCommand',
+              'MAX_SELECTION_LENGTH = 30000',
+          ):
+              assert marker in js, marker
+
+          for forbidden in (
+              'requestSubmit(',
+              '.submit(',
+              'send-button',
+              'Enter", {',
+          ):
+              assert forbidden not in js, forbidden
+
+          for marker in (
+              '.selected-text-handoff',
+              '.send-selection-button',
+              '.send-selection-button:hover',
+          ):
+              assert marker in css, marker
+
+          required_messages = {
+              'sendSelectionHeading',
+              'sendSelectionDescription',
+              'sendSelectionButton',
+              'selectionReadingStatus',
+              'chatGptPermissionDeniedError',
+              'selectionUnavailableError',
+              'selectionEmptyError',
+              'selectionTooLongError',
+              'openingChatGptStatus',
+              'chatGptOpenError',
+              'chatGptComposerError',
+              'selectionInsertedStatus',
+              'chatGptLoadTimeoutError',
+          }
+
+          for locale in ('en', 'uk'):
+              messages = json.loads((root / '_locales' / locale / 'messages.json').read_text())
+              missing = sorted(required_messages - messages.keys())
+              assert not missing, f'{locale} missing selected-text translations: {missing}'
+
+          print('Selected-text handoff validation: PASS')
+          PY
