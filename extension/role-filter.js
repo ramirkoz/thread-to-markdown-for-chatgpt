@@ -42,12 +42,20 @@
       .trim();
   }
 
+  function roleForItem(item) {
+    const index = Number(item?.dataset?.index);
+    const record = Number.isInteger(index) && Array.isArray(messages)
+      ? messages.find((message) => message.index === index)
+      : null;
+    return record?.role || 'unknown';
+  }
+
   function applyRoleFilter() {
     const query = normalizedQuery();
     let visible = 0;
 
     messagesNode.querySelectorAll('.message-item').forEach((item) => {
-      const roleMatches = activeRole === 'all' || item.dataset.role === activeRole;
+      const roleMatches = activeRole === 'all' || roleForItem(item) === activeRole;
       const textMatches = !query || String(item.dataset.search || '').includes(query);
       const matches = roleMatches && textMatches;
       item.hidden = !matches;
