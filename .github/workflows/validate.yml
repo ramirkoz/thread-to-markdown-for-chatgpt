@@ -25,6 +25,7 @@ jobs:
           node --check extension/html-export.js
           node --check extension/language-export.js
           node --check extension/pdf-export.js
+          node --check extension/package-export.js
           node --check extension/print.js
           node --check extension/popup.js
 
@@ -48,6 +49,7 @@ jobs:
               root / 'html-export.js',
               root / 'language-export.js',
               root / 'pdf-export.js',
+              root / 'package-export.js',
               root / 'print.html',
               root / 'print.css',
               root / 'print.js',
@@ -62,11 +64,13 @@ jobs:
           for path in required:
               assert path.is_file(), path
 
+          background_entry = (root / 'background-entry.js').read_text()
           html = (root / 'popup.html').read_text()
           js = (root / 'popup.js').read_text()
           html_export = (root / 'html-export.js').read_text()
           language_export = (root / 'language-export.js').read_text()
           pdf_export = (root / 'pdf-export.js').read_text()
+          package_export = (root / 'package-export.js').read_text()
           print_html = (root / 'print.html').read_text()
           print_css = (root / 'print.css').read_text()
           print_js = (root / 'print.js').read_text()
@@ -75,11 +79,19 @@ jobs:
           assert 'value="pdf"' in html
           assert "'html'" in js
           assert "'pdf'" in js
+          assert "option.value = 'zip'" in js
           assert "format: 'html'" in html_export
           assert "mimeType: 'text/html'" in html_export
           assert 'detectDocumentLanguage' in language_export
           assert 'printDialog: true' in pdf_export
           assert 'chrome.tabs.create' in pdf_export
+          assert "importScripts('package-export.js')" in background_entry
+          assert "value === 'zip'" in package_export
+          assert 'collectPortableAssets' in package_export
+          assert 'createStoredZip' in package_export
+          assert 'manifest.json' in package_export
+          assert 'conversation.html' in package_export
+          assert 'conversation.md' in package_export
           assert 'print.js' in print_html
           assert 'window.print()' in print_js
           assert "printButton?.addEventListener('click'" in print_js
@@ -98,13 +110,47 @@ jobs:
               messages = json.loads(messages_path.read_text())
               missing = sorted(keys - messages.keys())
               assert not missing, f'{locale} missing translations: {missing}'
+              assert 'formatZip' in messages
+              assert 'zipSuccessStatus' in messages
 
           print('Extension validation: PASS')
           PY
 
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const { TextEncoder, TextDecoder } = require('util');
+          const context = {
+            console,
+            TextEncoder,
+            TextDecoder,
+            Uint8Array,
+            Uint32Array,
+            DataView,
+            Date,
+            atob,
+            btoa,
+            self: {
+              exportThread: async () => ({}),
+              normalizeFormat: (value) => value,
+              prepareThread: async () => ({})
+            },
+            chrome: {}
+          };
+          vm.createContext(context);
+          vm.runInContext(fs.readFileSync('extension/package-export.js', 'utf8'), context);
+          const bytes = vm.runInContext(
+            "createStoredZip([{name:'hello.txt',data:encodeText('hello')},{name:'папка/test.txt',data:encodeText('test')}])",
+            context
+          );
+          fs.writeFileSync('/tmp/thread-package-test.zip', Buffer.from(bytes));
+          NODE
+          unzip -t /tmp/thread-package-test.zip
+
           rm -f /tmp/thread-to-markdown.zip
           (cd extension && zip -qr /tmp/thread-to-markdown.zip .)
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'manifest.json'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'package-export.js'
 
       - name: Build development packages
         if: github.event_name == 'push'
