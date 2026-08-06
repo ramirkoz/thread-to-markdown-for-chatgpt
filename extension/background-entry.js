@@ -87,3 +87,4 @@ importScripts('attachment-output-index-fix.js');
 importScripts('attachment-output-card-geometric-bridge.js');
 importScripts('attachment-output-index-bridge-cleanup.js');
 importScripts('attachment-filename-preservation-fix.js');
+importScripts('attachment-link-path-fix.js');
