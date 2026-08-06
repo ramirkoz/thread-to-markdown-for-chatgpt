@@ -30,12 +30,15 @@ jobs:
 
           assert 'collectAssistantOutputMessageIndices' in module
           assert 'mainWorldDescriptorsWithOutputIndices' in module
-          assert 'args: [null]' in module
+          assert 'bridgeAssistantOutputControls' in module
+          assert 'data-thread-export-index-bridge' in module
+          assert 'targetMessageIndex: mappedIndex' in module
+          assert 'messageIndex: mappedIndex' not in module
           assert 'outputIndexMap.set' in module
           assert "importScripts('attachment-output-index-fix.js')" in entry
           assert entry.index("importScripts('attachment-output-card-self-contained-fix.js')") < entry.index(
               "importScripts('attachment-output-index-fix.js')"
           )
 
-          print('Generated file turn index mapping: PASS')
+          print('Generated file turn index bridge: PASS')
           PY
