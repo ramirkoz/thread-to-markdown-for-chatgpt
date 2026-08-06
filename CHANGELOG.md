@@ -4,10 +4,12 @@
 
 - Started the 1.6.0 development cycle without submitting an intermediate Chrome Web Store update.
 - Added self-contained HTML export for selected messages.
-- Added print-friendly HTML styling suitable for browser printing and later PDF work.
-- Added HTML localization and clipboard support.
+- Added automatic HTML document-language detection for Ukrainian, Russian, and English content.
+- Added a local PDF workflow that opens Chrome's print dialog with a print-ready document and no new permissions.
+- Added print styling for long messages, tables, code blocks, links, and images.
+- Added HTML and PDF localization.
 - Kept local processing and the existing minimum permissions.
-- PDF export, embedded images, attachments, and ZIP packaging remain in development.
+- Embedded images, attachments, and ZIP packaging remain in development.
 
 ## 1.5.0 — 2026-08-06
 
@@ -36,7 +38,7 @@
 - Added English and Ukrainian localization.
 - Removed unnecessary host permissions.
 - Prepared a Chrome Web Store package with the manifest at ZIP root.
-- Added privacy policy and store submission documentation.
+- Added public privacy, store-listing, and submission documentation.
 
 ## 1.3.0 — 2026-07-24
 
