@@ -15,6 +15,7 @@ let activeTabId = null;
 let messages = [];
 let busy = false;
 
+ensureZipOption();
 localizeDocument();
 exportButton.addEventListener('click', exportSelectedMessages);
 copyButton.addEventListener('click', copySelectedMessages);
@@ -22,6 +23,16 @@ formatSelect.addEventListener('change', updateSelectionState);
 selectAllButton.addEventListener('click', () => setAllSelected(true));
 clearAllButton.addEventListener('click', () => setAllSelected(false));
 loadOpenThread();
+
+function ensureZipOption() {
+  if (formatSelect.querySelector('option[value="zip"]')) return;
+  const option = document.createElement('option');
+  option.value = 'zip';
+  option.dataset.i18n = 'formatZip';
+  option.textContent = 'Portable package (.zip)';
+  const textOption = formatSelect.querySelector('option[value="text"]');
+  formatSelect.insertBefore(option, textOption || null);
+}
 
 function localizeDocument() {
   document.querySelectorAll('[data-i18n]').forEach((node) => {
@@ -116,7 +127,7 @@ function selectedIndices() {
 }
 
 function selectedFormat() {
-  return ['markdown', 'html', 'pdf', 'text', 'json'].includes(formatSelect.value)
+  return ['markdown', 'html', 'pdf', 'zip', 'text', 'json'].includes(formatSelect.value)
     ? formatSelect.value
     : 'markdown';
 }
@@ -137,7 +148,7 @@ function updateSelectionState() {
 function refreshControls() {
   const disabled = busy || selectedIndices().length === 0 || !activeTabId;
   exportButton.disabled = disabled;
-  copyButton.disabled = disabled || selectedFormat() === 'pdf';
+  copyButton.disabled = disabled || ['pdf', 'zip'].includes(selectedFormat());
   formatSelect.disabled = busy || !activeTabId;
   selectAllButton.disabled = busy || !activeTabId;
   clearAllButton.disabled = busy || !activeTabId;
@@ -173,6 +184,12 @@ async function exportSelectedMessages() {
         'PDF preparation page opened. Use its button, then turn off Headers and footers in More settings.',
         'success'
       );
+    } else if (response.format === 'zip') {
+      setStatus(
+        formatMessage('zipSuccessStatus', [response.filename, response.includedAssets || 0, response.skippedAssets || 0]) ||
+        `Saved: ${response.filename}`,
+        'success'
+      );
     } else {
       setStatus(formatMessage('successStatus', [response.filename]) || `Saved: ${response.filename}`, 'success');
     }
@@ -185,7 +202,7 @@ async function exportSelectedMessages() {
 
 async function copySelectedMessages() {
   const indices = selectedIndices();
-  if (!activeTabId || !indices.length || selectedFormat() === 'pdf') {
+  if (!activeTabId || !indices.length || ['pdf', 'zip'].includes(selectedFormat())) {
     updateSelectionState();
     return;
   }
@@ -249,6 +266,7 @@ function formatDisplayName(format) {
     markdown: 'formatMarkdown',
     html: 'formatHtml',
     pdf: 'formatPdf',
+    zip: 'formatZip',
     text: 'formatText',
     json: 'formatJson'
   };
