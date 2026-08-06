@@ -10,9 +10,13 @@
 - Added explicit steps to disable Chrome Headers and footers before saving, removing the date, extension URL, and page counters from clean PDFs.
 - Kept the PDF instruction panel hidden from the printed document and allowed reopening the print dialog if settings need correction.
 - Added print styling for long messages, tables, code blocks, links, and images.
-- Added HTML and PDF localization.
+- Added a portable ZIP package containing HTML, Markdown, text, JSON, a manifest, captured images, and reusable attachments.
+- Added local asset capture with per-file and total package limits, duplicate filtering, and clear skipped-file reasons.
+- Added relative image and attachment links inside packaged HTML and Markdown.
+- Added ZIP structure and CRC validation to CI.
+- Added HTML, PDF, and ZIP localization.
 - Kept local processing and the existing minimum permissions.
-- Embedded images, attachments, and ZIP packaging remain in development.
+- Manual validation with real ChatGPT images and attachments remains pending.
 
 ## 1.5.0 — 2026-08-06
 
