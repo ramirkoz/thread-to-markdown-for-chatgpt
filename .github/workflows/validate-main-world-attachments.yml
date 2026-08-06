@@ -1,0 +1,29 @@
+name: Validate main-world attachments
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate main-world attachment capture
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-main-world-fallback.js
+          grep -q "importScripts('attachment-main-world-fallback.js')" extension/background-entry.js
+          grep -q "world: 'MAIN'" extension/attachment-main-world-fallback.js
+          grep -q "interceptedAttachmentFetch" extension/attachment-main-world-fallback.js
+          grep -q "interceptedAttachmentObjectUrl" extension/attachment-main-world-fallback.js
+          grep -q "URL.createObjectURL" extension/attachment-main-world-fallback.js
+          grep -q "ChatGPT page context did not expose reusable bytes" extension/attachment-main-world-fallback.js
