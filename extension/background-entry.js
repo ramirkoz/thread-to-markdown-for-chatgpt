@@ -69,3 +69,4 @@ function stripMarkdownDecoration(value) {
 importScripts('html-export.js');
 importScripts('language-export.js');
 importScripts('pdf-export.js');
+importScripts('package-export.js');
