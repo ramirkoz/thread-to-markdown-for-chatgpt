@@ -27,6 +27,10 @@ jobs:
           node --check extension/pdf-export.js
           node --check extension/package-export.js
           node --check extension/attachment-export-fix.js
+          node --check extension/attachment-preview-filter.js
+          node --check extension/attachment-relative-url-fix.js
+          node --check extension/attachment-resource-fallback.js
+          node --check extension/attachment-activation-fallback.js
           node --check extension/print.js
           node --check extension/popup.js
 
@@ -52,6 +56,10 @@ jobs:
               root / 'pdf-export.js',
               root / 'package-export.js',
               root / 'attachment-export-fix.js',
+              root / 'attachment-preview-filter.js',
+              root / 'attachment-relative-url-fix.js',
+              root / 'attachment-resource-fallback.js',
+              root / 'attachment-activation-fallback.js',
               root / 'print.html',
               root / 'print.css',
               root / 'print.js',
@@ -74,6 +82,7 @@ jobs:
           pdf_export = (root / 'pdf-export.js').read_text()
           package_export = (root / 'package-export.js').read_text()
           attachment_fix = (root / 'attachment-export-fix.js').read_text()
+          activation_fix = (root / 'attachment-activation-fallback.js').read_text()
           print_html = (root / 'print.html').read_text()
           print_css = (root / 'print.css').read_text()
           print_js = (root / 'print.js').read_text()
@@ -93,6 +102,10 @@ jobs:
           assert 'chrome.tabs.create' in pdf_export
           assert "importScripts('package-export.js')" in background_entry
           assert "importScripts('attachment-export-fix.js')" in background_entry
+          assert "importScripts('attachment-preview-filter.js')" in background_entry
+          assert "importScripts('attachment-relative-url-fix.js')" in background_entry
+          assert "importScripts('attachment-resource-fallback.js')" in background_entry
+          assert "importScripts('attachment-activation-fallback.js')" in background_entry
           assert "value === 'zip'" in package_export
           assert 'collectPortableAssets' in package_export
           assert 'createStoredZip' in package_export
@@ -104,6 +117,12 @@ jobs:
           assert '[role="button"]' in attachment_fix
           assert '[data-testid*="attachment"]' in attachment_fix
           assert 'The file card was detected' in attachment_fix
+          assert 'collectActivatedAttachmentCards' in activation_fix
+          assert 'target.click()' in activation_fix
+          assert "performance.getEntriesByType?.('resource')" in activation_fix
+          assert 'extractJsonUrls' in activation_fix
+          assert 'mergeActivatedAssets' in activation_fix
+          assert 'The file card was activated' in activation_fix
           assert 'print.js' in print_html
           assert 'window.print()' in print_js
           assert "printButton?.addEventListener('click'" in print_js
@@ -184,6 +203,7 @@ jobs:
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'manifest.json'
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'package-export.js'
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'attachment-export-fix.js'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'attachment-activation-fallback.js'
 
       - name: Build development packages
         if: github.event_name == 'push'
