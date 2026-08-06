@@ -50,6 +50,18 @@
   "noSearchResults": {
     "message": "Відповідних повідомлень не знайдено."
   },
+  "searchNavigationLabel": {
+    "message": "Навігація результатами пошуку"
+  },
+  "previousSearchResult": {
+    "message": "Попередній результат пошуку"
+  },
+  "nextSearchResult": {
+    "message": "Наступний результат пошуку"
+  },
+  "searchPosition": {
+    "message": "$1 із $2"
+  },
   "openMessageButton": {
     "message": "Відкрити повідомлення $1 у ChatGPT"
   },
