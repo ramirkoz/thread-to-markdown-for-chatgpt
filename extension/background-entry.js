@@ -76,3 +76,4 @@ importScripts('attachment-preview-filter.js');
 importScripts('attachment-relative-url-fix.js');
 importScripts('attachment-resource-fallback.js');
 importScripts('attachment-activation-fallback.js');
+importScripts('attachment-main-world-fallback.js');
