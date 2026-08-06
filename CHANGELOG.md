@@ -1,6 +1,16 @@
 # Changelog
 
-## 1.8.0 — Unreleased
+## 1.9.0 — Unreleased
+
+- Started the 1.9.0 development cycle without submitting an intermediate Chrome Web Store update.
+- Added a popup action that reads text explicitly selected by the user on the active page.
+- Added insertion of selected text into a new ChatGPT chat without automatically sending the message.
+- Added a narrowly scoped optional permission for `https://chatgpt.com/*`, requested only when the handoff action is used.
+- Added support for selections inside normal page content, text inputs, and textareas.
+- Added a 30,000-character selection limit, load timeout handling, and clear permission or composer errors.
+- Added English and Ukrainian localization for the selected-text handoff.
+
+## 1.8.0 — 2026-08-06
 
 - Started the 1.8.0 development cycle without submitting an intermediate Chrome Web Store update.
 - Added a collapsible local prompt library to the extension popup.
@@ -8,6 +18,7 @@
 - Stored prompt data only in the current browser profile with no developer server and no new browser permission.
 - Added input limits and a maximum of 100 saved prompts to keep local storage predictable.
 - Added English and Ukrainian localization for the prompt library.
+- Manual browser validation passed for creating, editing, searching, copying, deleting, and retaining local prompts.
 
 ## 1.7.0 — 2026-08-06
 
@@ -85,4 +96,3 @@
 ## 1.3.0 — 2026-07-24
 
 - Exported the open ChatGPT conversation to Markdown from the extension action.
-- Added title, timestamp, source URL, role labels, and safe filenames.
