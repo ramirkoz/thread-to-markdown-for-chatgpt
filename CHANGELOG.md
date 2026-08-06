@@ -1,6 +1,15 @@
 # Changelog
 
-## 1.5.0 — 2026-08-06 release candidate
+## 1.6.0 — Unreleased
+
+- Started the 1.6.0 development cycle without submitting an intermediate Chrome Web Store update.
+- Added self-contained HTML export for selected messages.
+- Added print-friendly HTML styling suitable for browser printing and later PDF work.
+- Added HTML localization and clipboard support.
+- Kept local processing and the existing minimum permissions.
+- PDF export, embedded images, attachments, and ZIP packaging remain in development.
+
+## 1.5.0 — 2026-08-06
 
 - Added compact previews for detected ChatGPT messages.
 - Added individual message selection before export.
@@ -16,8 +25,8 @@
 - Removed ChatGPT service labels such as quote and code-copy controls from Markdown and JSON exports.
 - Kept local processing and the existing minimum permissions.
 - Added automated validation for JavaScript, localization, permissions, package structure, and the background service-worker entry point.
-- Added automatic release-candidate package generation with Chrome Web Store ZIP, source ZIP, and SHA-256 checksums.
-- Kept release publishing restricted to matching version tags.
+- Added automatic development package generation with Chrome package, source ZIP, and SHA-256 checksums.
+- Kept Chrome Web Store publication deferred until the planned feature set is complete.
 
 ## 1.4.0 — 2026-08-02
 
