@@ -81,3 +81,4 @@ importScripts('attachment-unicode-output-fix.js');
 importScripts('attachment-output-card-annotation.js');
 importScripts('attachment-output-proxy-fix.js');
 importScripts('attachment-output-card-button-fix.js');
+importScripts('attachment-output-card-interactive-fix.js');
