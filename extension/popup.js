@@ -18,6 +18,7 @@ let busy = false;
 localizeDocument();
 exportButton.addEventListener('click', exportSelectedMessages);
 copyButton.addEventListener('click', copySelectedMessages);
+formatSelect.addEventListener('change', updateSelectionState);
 selectAllButton.addEventListener('click', () => setAllSelected(true));
 clearAllButton.addEventListener('click', () => setAllSelected(false));
 loadOpenThread();
@@ -115,7 +116,7 @@ function selectedIndices() {
 }
 
 function selectedFormat() {
-  return ['markdown', 'html', 'text', 'json'].includes(formatSelect.value)
+  return ['markdown', 'html', 'pdf', 'text', 'json'].includes(formatSelect.value)
     ? formatSelect.value
     : 'markdown';
 }
@@ -136,7 +137,7 @@ function updateSelectionState() {
 function refreshControls() {
   const disabled = busy || selectedIndices().length === 0 || !activeTabId;
   exportButton.disabled = disabled;
-  copyButton.disabled = disabled;
+  copyButton.disabled = disabled || selectedFormat() === 'pdf';
   formatSelect.disabled = busy || !activeTabId;
   selectAllButton.disabled = busy || !activeTabId;
   clearAllButton.disabled = busy || !activeTabId;
@@ -166,7 +167,15 @@ async function exportSelectedMessages() {
     });
     if (!response?.ok) throw new Error(response?.error || 'Export failed.');
 
-    setStatus(formatMessage('successStatus', [response.filename]) || `Saved: ${response.filename}`, 'success');
+    if (response.printDialog) {
+      setStatus(
+        chrome.i18n.getMessage('pdfReadyStatus') ||
+        'The print dialog is open. Choose Save as PDF.',
+        'success'
+      );
+    } else {
+      setStatus(formatMessage('successStatus', [response.filename]) || `Saved: ${response.filename}`, 'success');
+    }
   } catch (error) {
     setStatus(String(error?.message || error), 'error');
   } finally {
@@ -176,7 +185,7 @@ async function exportSelectedMessages() {
 
 async function copySelectedMessages() {
   const indices = selectedIndices();
-  if (!activeTabId || !indices.length) {
+  if (!activeTabId || !indices.length || selectedFormat() === 'pdf') {
     updateSelectionState();
     return;
   }
@@ -239,6 +248,7 @@ function formatDisplayName(format) {
   const keyByFormat = {
     markdown: 'formatMarkdown',
     html: 'formatHtml',
+    pdf: 'formatPdf',
     text: 'formatText',
     json: 'formatJson'
   };
