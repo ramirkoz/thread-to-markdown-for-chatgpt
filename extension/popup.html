@@ -32,6 +32,24 @@
           <button id="clear-all" class="text-button" type="button" data-i18n="clearAllButton">Clear</button>
         </div>
       </div>
+
+      <div class="navigation-tools">
+        <label class="search-field" for="message-search">
+          <span data-i18n="searchMessagesLabel">Search messages</span>
+          <input
+            id="message-search"
+            type="search"
+            autocomplete="off"
+            data-i18n-placeholder="searchMessagesPlaceholder"
+            placeholder="Search by text or role"
+          >
+        </label>
+        <div class="toc-summary">
+          <strong data-i18n="tocHeading">Thread contents</strong>
+          <span id="search-count"></span>
+        </div>
+      </div>
+
       <div id="messages" class="messages" role="list"></div>
 
       <div class="output-row">
