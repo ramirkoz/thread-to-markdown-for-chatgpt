@@ -13,10 +13,12 @@
 - Added a portable ZIP package containing HTML, Markdown, text, JSON, a manifest, captured images, and reusable attachments.
 - Added local asset capture with per-file and total package limits, duplicate filtering, and clear skipped-file reasons.
 - Added relative image and attachment links inside packaged HTML and Markdown.
+- Added supplemental detection for ChatGPT file cards rendered as buttons or containers without a normal download link.
+- Added manifest reporting when a visible file card exists but ChatGPT does not expose reusable file bytes.
 - Added ZIP structure and CRC validation to CI.
 - Added HTML, PDF, and ZIP localization.
 - Kept local processing and the existing minimum permissions.
-- Manual validation with real ChatGPT images and attachments remains pending.
+- Manual image capture validation passed; reusable and unavailable attachment-card handling remains under manual validation.
 
 ## 1.5.0 — 2026-08-06
 
