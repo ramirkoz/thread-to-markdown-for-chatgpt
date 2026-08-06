@@ -170,7 +170,7 @@ async function exportSelectedMessages() {
     if (response.printDialog) {
       setStatus(
         chrome.i18n.getMessage('pdfReadyStatus') ||
-        'The print dialog is open. Choose Save as PDF.',
+        'PDF preparation page opened. Use its button, then turn off Headers and footers in More settings.',
         'success'
       );
     } else {
