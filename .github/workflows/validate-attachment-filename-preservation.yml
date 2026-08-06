@@ -1,0 +1,43 @@
+name: Validate attachment filename preservation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate Unicode attachment filenames
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-filename-preservation-fix.js
+
+          python - <<'PY'
+          from pathlib import Path
+
+          module = Path('extension/attachment-filename-preservation-fix.js').read_text()
+          entry = Path('extension/background-entry.js').read_text()
+
+          assert 'preserveAttachmentFilename' in module
+          assert 'buildPortablePackageWithAttachmentFilenames' in module
+          assert 'asset.label' in module
+          assert "importScripts('attachment-filename-preservation-fix.js')" in entry
+          assert entry.index("importScripts('attachment-output-index-bridge-cleanup.js')") < entry.index(
+              "importScripts('attachment-filename-preservation-fix.js')"
+          )
+
+          sample = 'Резюме_Братусь_Ярослава_DOT_міжнародні_партнерства.pdf'
+          assert sample.endswith('.pdf') and not sample.startswith('_')
+
+          print('Unicode attachment filename preservation: PASS')
+          PY
