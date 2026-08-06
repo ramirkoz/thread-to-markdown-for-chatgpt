@@ -5,10 +5,15 @@
 - Started the 1.9.0 development cycle without submitting an intermediate Chrome Web Store update.
 - Added a popup action that reads text explicitly selected by the user on the active page.
 - Added insertion of selected text into a new ChatGPT chat without automatically sending the message.
-- Added a narrowly scoped optional permission for `https://chatgpt.com/*`, requested only when the handoff action is used.
+- Added a narrowly scoped optional permission for `https://chatgpt.com/*`, requested only when a handoff action is used.
 - Added support for selections inside normal page content, text inputs, and textareas.
 - Added a 30,000-character selection limit, load timeout handling, and clear permission or composer errors.
 - Added English and Ukrainian localization for the selected-text handoff.
+- Manual browser validation passed for selected-text insertion into a new ChatGPT chat without automatic sending.
+- Added a second handoff action that extracts the current page title, source URL, and cleaned main text.
+- Added local removal of navigation, forms, sidebars, advertisements, scripts, and other common page noise before insertion.
+- Added automatic page-text shortening with a visible note when the 30,000-character handoff limit would be exceeded.
+- Added English and Ukrainian localization and automated validation for webpage handoff.
 
 ## 1.8.0 — 2026-08-06
 
