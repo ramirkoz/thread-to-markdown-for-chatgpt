@@ -1,28 +1,36 @@
 'use strict';
 
 const htmlLanguageReadThread = self.readThread;
+const htmlLanguageBuildExport = self.buildHtmlExport;
 
-if (typeof htmlLanguageReadThread !== 'function') {
+if (
+  typeof htmlLanguageReadThread !== 'function' ||
+  typeof htmlLanguageBuildExport !== 'function'
+) {
   throw new Error('HTML export layer was not initialized.');
 }
 
+self.buildHtmlExport = function buildHtmlExportWithLanguage(result) {
+  return applyDetectedDocumentLanguage(htmlLanguageBuildExport(result));
+};
+
 self.readThread = async function readThreadWithLanguage(tabId, options = {}) {
   const result = await htmlLanguageReadThread(tabId, options);
-
-  if (
-    options.format === 'html' &&
-    result?.ok &&
-    typeof result.content === 'string'
-  ) {
-    const language = detectDocumentLanguage(result.content);
-    result.content = result.content.replace(
-      /<html\s+lang="[^"]*">/i,
-      `<html lang="${language}">`
-    );
-  }
-
-  return result;
+  return options.format === 'html'
+    ? applyDetectedDocumentLanguage(result)
+    : result;
 };
+
+function applyDetectedDocumentLanguage(result) {
+  if (!result?.ok || typeof result.content !== 'string') return result;
+
+  const language = detectDocumentLanguage(result.content);
+  result.content = result.content.replace(
+    /<html\s+lang="[^"]*">/i,
+    `<html lang="${language}">`
+  );
+  return result;
+}
 
 function detectDocumentLanguage(html) {
   const text = String(html || '')
