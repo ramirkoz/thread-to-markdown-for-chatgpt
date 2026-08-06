@@ -21,6 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check extension/background.js
+          node --check extension/background-entry.js
           node --check extension/popup.js
 
           python - <<'PY'
@@ -35,9 +36,11 @@ jobs:
           assert re.fullmatch(r'\d+\.\d+\.\d+', manifest['version'])
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
           assert 'host_permissions' not in manifest
+          assert manifest['background']['service_worker'] == 'background-entry.js'
 
           required = [
               root / 'background.js',
+              root / 'background-entry.js',
               root / 'popup.html',
               root / 'popup.css',
               root / 'popup.js',
