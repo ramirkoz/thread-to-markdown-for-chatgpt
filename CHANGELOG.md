@@ -17,10 +17,11 @@
 - Added manifest reporting when a visible file card exists but ChatGPT does not expose reusable file bytes.
 - Added lazy attachment resolution that activates unresolved file cards, observes newly loaded file resources, follows metadata URLs, and captures validated bytes locally.
 - Added a main-page-context fallback that observes ChatGPT fetches, object URLs, opened links, and signed attachment responses after activation.
+- Added Unicode-safe detection for assistant-generated output filenames, including Ukrainian filenames and names containing spaces.
 - Added ZIP structure and CRC validation to CI.
 - Added HTML, PDF, and ZIP localization.
 - Kept local processing and the existing minimum permissions.
-- Manual image capture validation passed; main-page-context attachment capture remains under manual validation.
+- Manual image capture validation passed; assistant-output and main-page-context attachment capture remain under manual validation.
 
 ## 1.5.0 — 2026-08-06
 
