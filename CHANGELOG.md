@@ -1,6 +1,15 @@
 # Changelog
 
-## 1.7.0 — Unreleased
+## 1.8.0 — Unreleased
+
+- Started the 1.8.0 development cycle without submitting an intermediate Chrome Web Store update.
+- Added a collapsible local prompt library to the extension popup.
+- Added creation, editing, deletion, search, and clipboard copying for reusable prompts.
+- Stored prompt data only in the current browser profile with no developer server and no new browser permission.
+- Added input limits and a maximum of 100 saved prompts to keep local storage predictable.
+- Added English and Ukrainian localization for the prompt library.
+
+## 1.7.0 — 2026-08-06
 
 - Started the 1.7.0 development cycle without submitting an intermediate Chrome Web Store update.
 - Added a searchable thread contents panel to the extension popup.
@@ -12,6 +21,7 @@
 - Added role filters for all messages, user messages, or ChatGPT messages while preserving text search and result navigation.
 - Added English and Ukrainian localization for search, role filters, contents, result position, navigation, empty results, and navigation errors.
 - Kept local processing and the existing minimum permissions.
+- Manual browser validation passed for search, role filters, direct message opening, previous and next navigation, virtualized long-thread navigation, and single active highlighting.
 
 ## 1.6.0 — 2026-08-06
 
