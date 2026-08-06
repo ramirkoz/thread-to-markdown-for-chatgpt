@@ -72,3 +72,4 @@ importScripts('language-export.js');
 importScripts('pdf-export.js');
 importScripts('package-export.js');
 importScripts('attachment-export-fix.js');
+importScripts('attachment-preview-filter.js');
