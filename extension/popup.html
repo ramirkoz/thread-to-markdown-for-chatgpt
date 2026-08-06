@@ -48,6 +48,11 @@
           <strong data-i18n="tocHeading">Thread contents</strong>
           <span id="search-count"></span>
         </div>
+        <div class="result-navigation" role="group">
+          <button id="previous-search-result" class="result-nav-button" type="button" disabled>←</button>
+          <span id="search-position" aria-live="polite">0 of 0</span>
+          <button id="next-search-result" class="result-nav-button" type="button" disabled>→</button>
+        </div>
       </div>
 
       <div id="messages" class="messages" role="list"></div>
@@ -75,5 +80,6 @@
     </footer>
   </main>
   <script src="popup.js"></script>
+  <script src="search-navigation.js"></script>
 </body>
 </html>
