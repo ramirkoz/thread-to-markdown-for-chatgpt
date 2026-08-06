@@ -23,6 +23,9 @@ jobs:
           node --check extension/background.js
           node --check extension/background-entry.js
           node --check extension/html-export.js
+          node --check extension/language-export.js
+          node --check extension/pdf-export.js
+          node --check extension/print.js
           node --check extension/popup.js
 
           python - <<'PY'
@@ -43,6 +46,11 @@ jobs:
               root / 'background.js',
               root / 'background-entry.js',
               root / 'html-export.js',
+              root / 'language-export.js',
+              root / 'pdf-export.js',
+              root / 'print.html',
+              root / 'print.css',
+              root / 'print.js',
               root / 'popup.html',
               root / 'popup.css',
               root / 'popup.js',
@@ -57,10 +65,22 @@ jobs:
           html = (root / 'popup.html').read_text()
           js = (root / 'popup.js').read_text()
           html_export = (root / 'html-export.js').read_text()
+          language_export = (root / 'language-export.js').read_text()
+          pdf_export = (root / 'pdf-export.js').read_text()
+          print_html = (root / 'print.html').read_text()
+          print_js = (root / 'print.js').read_text()
+
           assert 'value="html"' in html
+          assert 'value="pdf"' in html
           assert "'html'" in js
+          assert "'pdf'" in js
           assert "format: 'html'" in html_export
           assert "mimeType: 'text/html'" in html_export
+          assert 'detectDocumentLanguage' in language_export
+          assert 'printDialog: true' in pdf_export
+          assert 'chrome.tabs.create' in pdf_export
+          assert 'print.js' in print_html
+          assert 'window.print()' in print_js
 
           keys = set(re.findall(r'data-i18n="([^"]+)"', html))
           keys.update(re.findall(r"getMessage\('([^']+)'", js))
