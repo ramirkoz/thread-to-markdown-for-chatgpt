@@ -3,7 +3,7 @@
     "message": "Thread to Markdown for ChatGPT"
   },
   "extensionDescription": {
-    "message": "Search, navigate, select, and export ChatGPT messages, with a local reusable prompt library."
+    "message": "Search, navigate, select, and export ChatGPT messages, save local prompts, and send selected text into ChatGPT."
   },
   "actionTitle": {
     "message": "Export ChatGPT thread"
@@ -19,6 +19,45 @@
   },
   "privacyText": {
     "message": "The page is processed only on your device. Nothing is sent to the developer."
+  },
+  "sendSelectionHeading": {
+    "message": "Send selected text to ChatGPT"
+  },
+  "sendSelectionDescription": {
+    "message": "Select text on the current page. It will be inserted into a new ChatGPT chat without being sent automatically."
+  },
+  "sendSelectionButton": {
+    "message": "Insert selected text"
+  },
+  "selectionReadingStatus": {
+    "message": "Reading the selected text…"
+  },
+  "chatGptPermissionDeniedError": {
+    "message": "Permission to insert text into ChatGPT was not granted."
+  },
+  "selectionUnavailableError": {
+    "message": "The selected text cannot be read on this page."
+  },
+  "selectionEmptyError": {
+    "message": "Select text on the page first."
+  },
+  "selectionTooLongError": {
+    "message": "The selected text is longer than $1 characters. Select a shorter passage."
+  },
+  "openingChatGptStatus": {
+    "message": "Opening a new ChatGPT chat…"
+  },
+  "chatGptOpenError": {
+    "message": "ChatGPT could not be opened."
+  },
+  "chatGptComposerError": {
+    "message": "The ChatGPT message field could not be found."
+  },
+  "selectionInsertedStatus": {
+    "message": "The text was inserted into ChatGPT. Review it and send manually."
+  },
+  "chatGptLoadTimeoutError": {
+    "message": "ChatGPT took too long to load."
   },
   "exportButton": {
     "message": "Export selected"
