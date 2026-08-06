@@ -3,7 +3,7 @@
     "message": "Гілка ChatGPT у Markdown"
   },
   "extensionDescription": {
-    "message": "Експортує вибрані повідомлення ChatGPT локально у Markdown, HTML, звичайний текст або JSON."
+    "message": "Експортує вибрані повідомлення ChatGPT локально у Markdown, HTML, PDF, звичайний текст або JSON."
   },
   "actionTitle": {
     "message": "Експортувати гілку ChatGPT"
@@ -44,6 +44,9 @@
   "formatHtml": {
     "message": "HTML (.html)"
   },
+  "formatPdf": {
+    "message": "PDF (через друк)"
+  },
   "formatText": {
     "message": "Звичайний текст (.txt)"
   },
@@ -70,6 +73,9 @@
   },
   "copiedStatus": {
     "message": "Скопійовано повідомлень: $1. Формат: $2."
+  },
+  "pdfReadyStatus": {
+    "message": "Відкрито вікно друку. Оберіть «Зберегти як PDF»."
   },
   "clipboardError": {
     "message": "Не вдалося скопіювати вибрані повідомлення."
