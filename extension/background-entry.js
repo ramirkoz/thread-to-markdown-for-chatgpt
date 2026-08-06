@@ -84,3 +84,4 @@ importScripts('attachment-output-card-button-fix.js');
 importScripts('attachment-output-card-interactive-fix.js');
 importScripts('attachment-output-card-self-contained-fix.js');
 importScripts('attachment-output-index-fix.js');
+importScripts('attachment-output-card-geometric-bridge.js');
