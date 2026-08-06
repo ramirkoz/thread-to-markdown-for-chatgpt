@@ -1,0 +1,120 @@
+name: Validate prompt library
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate local prompt library
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/prompt-library.js
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('extension')
+          manifest = json.loads((root / 'manifest.json').read_text())
+          html = (root / 'popup.html').read_text()
+          css = (root / 'popup.css').read_text()
+          js = (root / 'prompt-library.js').read_text()
+
+          assert manifest['version'] == '1.8.0'
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
+          assert 'host_permissions' not in manifest
+
+          for marker in (
+              'id="prompt-library"',
+              'id="prompt-count"',
+              'id="prompt-search"',
+              'id="prompt-list"',
+              'id="prompt-add"',
+              'id="prompt-form"',
+              'id="prompt-title"',
+              'id="prompt-content"',
+              'id="prompt-cancel"',
+              'id="prompt-save"',
+              'src="prompt-library.js"',
+          ):
+              assert marker in html, marker
+
+          for marker in (
+              "const STORAGE_KEY = 'thread-to-markdown.prompt-library.v1'",
+              'const MAX_PROMPTS = 100',
+              'localStorage.getItem',
+              'localStorage.setItem',
+              'loadPrompts',
+              'savePrompts',
+              'filteredPrompts',
+              'createPromptCard',
+              "action === 'copy'",
+              "action === 'edit'",
+              "action === 'delete'",
+              'window.confirm',
+              'writeClipboard',
+              'MAX_TITLE_LENGTH',
+              'MAX_CONTENT_LENGTH',
+          ):
+              assert marker in js, marker
+
+          for marker in (
+              '.prompt-library',
+              '.prompt-library-body',
+              '.prompt-list',
+              '.prompt-card',
+              '.prompt-actions',
+              '.prompt-form',
+              '.prompt-add',
+              '.prompt-save',
+          ):
+              assert marker in css, marker
+
+          required_messages = {
+              'promptLibraryHeading',
+              'promptLibraryPrivacy',
+              'promptSearchLabel',
+              'promptSearchPlaceholder',
+              'promptCount',
+              'promptEmpty',
+              'promptNoResults',
+              'promptAdd',
+              'promptTitleLabel',
+              'promptTitlePlaceholder',
+              'promptContentLabel',
+              'promptContentPlaceholder',
+              'promptCancel',
+              'promptSave',
+              'promptUpdate',
+              'promptCopy',
+              'promptEdit',
+              'promptDelete',
+              'promptCopied',
+              'promptSaved',
+              'promptUpdated',
+              'promptDeleted',
+              'promptDeleteConfirm',
+              'promptRequiredError',
+              'promptLimitReached',
+              'promptStorageError',
+          }
+
+          for locale in ('en', 'uk'):
+              messages = json.loads((root / '_locales' / locale / 'messages.json').read_text())
+              missing = sorted(required_messages - messages.keys())
+              assert not missing, f'{locale} missing prompt translations: {missing}'
+
+          print('Prompt library validation: PASS')
+          PY
