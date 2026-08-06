@@ -22,6 +22,7 @@ jobs:
           set -euo pipefail
           node --check extension/popup.js
           node --check extension/search-navigation.js
+          node --check extension/navigation-highlight-fix.js
 
           python - <<'PY'
           import json
@@ -33,6 +34,7 @@ jobs:
           css = (root / 'popup.css').read_text()
           js = (root / 'popup.js').read_text()
           search_js = (root / 'search-navigation.js').read_text()
+          highlight_js = (root / 'navigation-highlight-fix.js').read_text()
 
           assert manifest['version'] == '1.7.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
@@ -46,6 +48,7 @@ jobs:
               'id="previous-search-result"',
               'id="next-search-result"',
               'id="search-position"',
+              'src="navigation-highlight-fix.js"',
               'src="search-navigation.js"',
           ):
               assert marker in html, marker
@@ -73,6 +76,15 @@ jobs:
               'search-current',
           ):
               assert marker in search_js, marker
+
+          for marker in (
+              'clearNavigationHighlights',
+              'data-thread-export-navigation-highlight',
+              'threadExportNavigationToken',
+              'restoreHighlight',
+              'globalThis.scrollToConversationMessage',
+          ):
+              assert marker in highlight_js, marker
 
           for marker in (
               '.navigation-tools',
