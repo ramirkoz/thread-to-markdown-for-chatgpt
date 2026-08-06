@@ -16,10 +16,11 @@ The current Chrome Web Store version is 1.4.0. Development continues in this rep
 
 - Loads user and assistant messages from the open conversation.
 - Lets the user select individual messages before export.
-- Exports selected messages as Markdown, HTML, plain text, or JSON.
+- Exports selected messages as Markdown, HTML, PDF, plain text, or JSON.
 - Copies selected messages to the clipboard locally.
 - Preserves headings, lists, tables, links, emphasis, quotes, inline code, and fenced code blocks in structured exports.
-- Creates a self-contained, print-friendly HTML document without external scripts or styles.
+- Creates a self-contained HTML document and detects Ukrainian, Russian, or English content for the document language.
+- Opens a local print-ready view for PDF creation through Chrome's Save as PDF option.
 - Adds the conversation title, export time, source URL, and safe filename.
 - Works only after an explicit user action.
 - Processes everything locally. No telemetry, tracking, server, or account is used.
@@ -28,7 +29,7 @@ The current Chrome Web Store version is 1.4.0. Development continues in this rep
 
 Version 1.5.0 completed message selection, Markdown/TXT/JSON export, clipboard copying, structured formatting, link cleanup, and removal of ChatGPT interface labels.
 
-Version 1.6.0 development has started with self-contained HTML export. PDF, embedded images, attachments, and ZIP packaging remain in the 1.6.0 roadmap.
+Version 1.6.0 currently includes self-contained HTML export, automatic HTML language detection, and a local PDF print workflow. Embedded images, attachments, and ZIP packaging remain in development.
 
 ## Install from source
 
