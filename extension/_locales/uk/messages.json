@@ -3,7 +3,7 @@
     "message": "Гілка ChatGPT у Markdown"
   },
   "extensionDescription": {
-    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT локально у Markdown, HTML, PDF, ZIP, звичайний текст або JSON."
+    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT, а також зберігає локальну бібліотеку промптів."
   },
   "actionTitle": {
     "message": "Експортувати гілку ChatGPT"
@@ -88,6 +88,84 @@
   },
   "emptyMessagePreview": {
     "message": "Порожнє повідомлення"
+  },
+  "promptLibraryHeading": {
+    "message": "Локальна бібліотека промптів"
+  },
+  "promptLibraryPrivacy": {
+    "message": "Промпти зберігаються лише в цьому профілі браузера."
+  },
+  "promptSearchLabel": {
+    "message": "Пошук збережених промптів"
+  },
+  "promptSearchPlaceholder": {
+    "message": "Пошук за назвою або текстом"
+  },
+  "promptCount": {
+    "message": "$1"
+  },
+  "promptEmpty": {
+    "message": "Збережених промптів ще немає."
+  },
+  "promptNoResults": {
+    "message": "Відповідних промптів не знайдено."
+  },
+  "promptAdd": {
+    "message": "Додати промпт"
+  },
+  "promptTitleLabel": {
+    "message": "Назва промпту"
+  },
+  "promptTitlePlaceholder": {
+    "message": "Наприклад: Щотижневий звіт"
+  },
+  "promptContentLabel": {
+    "message": "Текст промпту"
+  },
+  "promptContentPlaceholder": {
+    "message": "Введіть багаторазову інструкцію"
+  },
+  "promptCancel": {
+    "message": "Скасувати"
+  },
+  "promptSave": {
+    "message": "Зберегти промпт"
+  },
+  "promptUpdate": {
+    "message": "Оновити промпт"
+  },
+  "promptCopy": {
+    "message": "Копіювати"
+  },
+  "promptEdit": {
+    "message": "Редагувати"
+  },
+  "promptDelete": {
+    "message": "Видалити"
+  },
+  "promptCopied": {
+    "message": "Скопійовано промпт: $1."
+  },
+  "promptSaved": {
+    "message": "Збережено промпт: $1."
+  },
+  "promptUpdated": {
+    "message": "Оновлено промпт: $1."
+  },
+  "promptDeleted": {
+    "message": "Видалено промпт: $1."
+  },
+  "promptDeleteConfirm": {
+    "message": "Видалити промпт «$1»?"
+  },
+  "promptRequiredError": {
+    "message": "Введіть назву та текст промпту."
+  },
+  "promptLimitReached": {
+    "message": "Досягнуто ліміту: $1 промптів."
+  },
+  "promptStorageError": {
+    "message": "Не вдалося зберегти бібліотеку промптів."
   },
   "formatLabel": {
     "message": "Формат"
