@@ -16,21 +16,24 @@ The current Chrome Web Store version is 1.4.0. Development continues in this rep
 
 - Loads user and assistant messages from the open conversation.
 - Lets the user select individual messages before export.
-- Exports selected messages as Markdown, HTML, PDF, plain text, or JSON.
+- Exports selected messages as Markdown, HTML, PDF, ZIP, plain text, or JSON.
 - Copies selected messages to the clipboard locally.
 - Preserves headings, lists, tables, links, emphasis, quotes, inline code, and fenced code blocks in structured exports.
 - Creates a self-contained HTML document and detects Ukrainian, Russian, or English content for the document language.
 - Opens a local PDF preparation page with clear steps for disabling Chrome Headers and footers before saving.
-- Keeps the PDF instruction panel out of the printed document and lets the user reopen the print dialog if needed.
+- Creates a portable ZIP package with HTML, Markdown, text, JSON, a manifest, captured images, and reusable attachments.
+- Records skipped assets and the reason they could not be included instead of leaving misleading broken links.
 - Adds the conversation title, export time, source URL, and safe filename.
 - Works only after an explicit user action.
-- Processes everything locally. No telemetry, tracking, server, or account is used.
+- Processes exports locally. No telemetry, tracking, developer server, or extension account is used.
 
 ## Development version 1.6.0
 
 Version 1.5.0 completed message selection, Markdown/TXT/JSON export, clipboard copying, structured formatting, link cleanup, and removal of ChatGPT interface labels.
 
-Version 1.6.0 currently includes self-contained HTML export, automatic HTML language detection, and a guided local PDF workflow. For a clean PDF, open the print dialog from the preparation page, expand **More settings**, turn off **Headers and footers**, and choose **Save as PDF**. Embedded images, attachments, and ZIP packaging remain in development.
+Version 1.6.0 currently includes self-contained HTML export, automatic HTML language detection, guided local PDF creation, and portable ZIP packaging. The ZIP contains `conversation.html`, `conversation.md`, `conversation.txt`, `conversation.json`, `manifest.json`, and any captured files under `assets/` or `attachments/`.
+
+Asset capture is intentionally bounded: up to 40 detected files, 6 MB per file, and 16 MB total. ChatGPT temporary files that do not expose reusable bytes are listed in `manifest.json` with a skipped reason. Manual browser validation with real images and attachments is still required before 1.6.0 is considered complete.
 
 ## Install from source
 
@@ -46,10 +49,10 @@ Version 1.6.0 currently includes self-contained HTML export, automatic HTML lang
 | Permission | Why it is needed |
 |---|---|
 | `activeTab` | Access the tab explicitly selected by the user. |
-| `scripting` | Read the open conversation after the user requests it. |
+| `scripting` | Read the open conversation and reusable assets after the user requests an export. |
 | `downloads` | Save the generated export file locally. |
 
-The extension requests no broad host permissions and performs no network requests.
+The extension requests no broad host permissions. ZIP asset capture may re-read file URLs already exposed by the currently open ChatGPT page, using that page's existing session. Captured content is written only into the local ZIP and is not sent to the developer or another service.
 
 ## Privacy
 
