@@ -83,6 +83,9 @@ jobs:
           assert "format: 'html'" in html_export
           assert "mimeType: 'text/html'" in html_export
           assert 'detectDocumentLanguage' in language_export
+          assert 'buildHtmlExportWithLanguage' in language_export
+          assert 'applyDetectedDocumentLanguage' in language_export
+          assert 'self.buildHtmlExport' in language_export
           assert 'printDialog: true' in pdf_export
           assert 'chrome.tabs.create' in pdf_export
           assert "importScripts('package-export.js')" in background_entry
@@ -115,6 +118,26 @@ jobs:
 
           print('Extension validation: PASS')
           PY
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const source = fs.readFileSync('extension/language-export.js', 'utf8');
+          const html = '<!doctype html><html lang="und"><body>Україна українська розмова повідомлення</body></html>';
+          const context = {
+            chrome: { i18n: { getUILanguage: () => 'en' } },
+            self: {
+              readThread: async () => ({ ok: true, content: html }),
+              buildHtmlExport: () => ({ ok: true, content: html })
+            }
+          };
+          vm.createContext(context);
+          vm.runInContext(source, context);
+          const result = context.self.buildHtmlExport({});
+          if (!result.content.includes('<html lang="uk">')) {
+            throw new Error('Portable HTML language detection failed.');
+          }
+          NODE
 
           node - <<'NODE'
           const fs = require('fs');
