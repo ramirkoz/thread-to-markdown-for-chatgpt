@@ -44,6 +44,11 @@
             placeholder="Search by text or role"
           >
         </label>
+        <div id="role-filter" class="role-filter" role="group">
+          <button class="role-filter-button active" type="button" data-role-filter="all" data-i18n="roleFilterAll" aria-pressed="true">All</button>
+          <button class="role-filter-button" type="button" data-role-filter="user" data-i18n="roleFilterUser" aria-pressed="false">User</button>
+          <button class="role-filter-button" type="button" data-role-filter="assistant" data-i18n="roleFilterAssistant" aria-pressed="false">ChatGPT</button>
+        </div>
         <div class="toc-summary">
           <strong data-i18n="tocHeading">Thread contents</strong>
           <span id="search-count"></span>
@@ -81,6 +86,7 @@
   </main>
   <script src="popup.js"></script>
   <script src="navigation-highlight-fix.js"></script>
+  <script src="role-filter.js"></script>
   <script src="search-navigation.js"></script>
 </body>
 </html>
