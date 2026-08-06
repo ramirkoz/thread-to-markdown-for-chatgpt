@@ -1,0 +1,42 @@
+name: Validate output card button
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate output card download button binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-output-card-button-fix.js
+
+          python - <<'PY'
+          from pathlib import Path
+
+          module = Path('extension/attachment-output-card-button-fix.js').read_text()
+          entry = Path('extension/background-entry.js').read_text()
+
+          assert 'annotateAssistantOutputCardsWithDownloadButton' in module
+          assert 'data-thread-export-download-button' in module
+          assert 'Download file' in module
+          assert 'verticalOverlap' in module
+          assert 'buttonBounds.left >= fileBounds.right' in module
+          assert "importScripts('attachment-output-card-button-fix.js')" in entry
+          assert entry.index("importScripts('attachment-output-proxy-fix.js')") < entry.index(
+              "importScripts('attachment-output-card-button-fix.js')"
+          )
+
+          print('Assistant output card download button binding: PASS')
+          PY
