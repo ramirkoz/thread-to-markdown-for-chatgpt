@@ -21,6 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check extension/selected-text-to-chatgpt.js
+          node --check extension/selected-text-handoff-background.js
 
           python - <<'PY'
           import json
@@ -30,7 +31,9 @@ jobs:
           manifest = json.loads((root / 'manifest.json').read_text())
           html = (root / 'popup.html').read_text()
           css = (root / 'popup.css').read_text()
-          js = (root / 'selected-text-to-chatgpt.js').read_text()
+          popup_js = (root / 'selected-text-to-chatgpt.js').read_text()
+          background_js = (root / 'selected-text-handoff-background.js').read_text()
+          background_entry = (root / 'background-entry.js').read_text()
 
           assert manifest['version'] == '1.9.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
@@ -49,29 +52,40 @@ jobs:
 
           for marker in (
               "const CHATGPT_ORIGIN = 'https://chatgpt.com/*'",
-              "const CHATGPT_URL = 'https://chatgpt.com/'",
-              'chrome.permissions.contains',
               'chrome.permissions.request',
-              'chrome.tabs.create',
-              'chrome.tabs.onUpdated',
+              'chrome.runtime.sendMessage',
+              "type: 'insert-selected-text'",
               'chrome.scripting.executeScript',
               'readPageSelection',
+              'MAX_SELECTION_LENGTH = 30000',
+          ):
+              assert marker in popup_js, marker
+
+          for marker in (
+              "message?.type !== 'insert-selected-text'",
+              'handleSelectedTextHandoff',
+              'chrome.permissions.contains',
+              "url: 'https://chatgpt.com/'",
+              'active: false',
+              'chrome.tabs.onUpdated',
+              'chrome.tabs.update',
+              'chrome.scripting.executeScript',
               'insertIntoChatGptComposer',
               "'#prompt-textarea'",
               "'[data-testid=\"prompt-textarea\"]'",
               "'form [contenteditable=\"true\"]'",
               'document.execCommand',
-              'MAX_SELECTION_LENGTH = 30000',
           ):
-              assert marker in js, marker
+              assert marker in background_js, marker
+
+          assert "importScripts('selected-text-handoff-background.js')" in background_entry
 
           for forbidden in (
               'requestSubmit(',
               '.submit(',
               'send-button',
-              'Enter", {',
           ):
-              assert forbidden not in js, forbidden
+              assert forbidden not in background_js, forbidden
 
           for marker in (
               '.selected-text-handoff',
