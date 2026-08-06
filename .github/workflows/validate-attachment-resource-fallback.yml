@@ -22,6 +22,10 @@ jobs:
           set -euo pipefail
           node --check extension/attachment-resource-fallback.js
           grep -q "importScripts('attachment-resource-fallback.js')" extension/background-entry.js
-          grep -q "typeof value !== 'string'" extension/attachment-resource-fallback.js
+          grep -q "isPlausibleAttachmentUrl" extension/attachment-resource-fallback.js
+          grep -q "generatedUrlsForFileIds" extension/attachment-resource-fallback.js
+          grep -q "candidateMap" extension/attachment-resource-fallback.js
           grep -q "performance.getEntriesByType" extension/attachment-resource-fallback.js
-          grep -q "ChatGPT returned a page instead of the attachment bytes" extension/attachment-resource-fallback.js
+          grep -q "backend-api/estuary/content?id=" extension/attachment-resource-fallback.js
+          grep -q "page or decorative asset instead of the attachment bytes" extension/attachment-resource-fallback.js
+          grep -q "No attachment endpoint returned valid bytes" extension/attachment-resource-fallback.js
