@@ -32,7 +32,10 @@ jobs:
           assert 'data-thread-export-download-button' in module
           assert 'Download file' in module
           assert 'verticalOverlap' in module
-          assert 'buttonBounds.left >= fileBounds.right' in module
+          assert 'extractFilenames' in module
+          assert "raw.split('\\n')" in module
+          assert 'compactFilenamePattern' in module
+          assert 'outputCardButtonBaseAnnotate' not in module
           assert "importScripts('attachment-output-card-button-fix.js')" in entry
           assert entry.index("importScripts('attachment-output-proxy-fix.js')") < entry.index(
               "importScripts('attachment-output-card-button-fix.js')"
