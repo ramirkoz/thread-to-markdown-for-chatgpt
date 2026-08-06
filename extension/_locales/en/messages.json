@@ -3,7 +3,7 @@
     "message": "Thread to Markdown for ChatGPT"
   },
   "extensionDescription": {
-    "message": "Search, navigate, select, and export ChatGPT messages, save local prompts, and send selected text into ChatGPT."
+    "message": "Search, navigate, select, and export ChatGPT messages, save local prompts, and send selected text or the current webpage into ChatGPT."
   },
   "actionTitle": {
     "message": "Export ChatGPT thread"
@@ -58,6 +58,42 @@
   },
   "chatGptLoadTimeoutError": {
     "message": "ChatGPT took too long to load."
+  },
+  "sendWebpageHeading": {
+    "message": "Send current webpage to ChatGPT"
+  },
+  "sendWebpageDescription": {
+    "message": "The page title, address, and cleaned main text will be inserted into a new chat without being sent automatically."
+  },
+  "sendWebpageButton": {
+    "message": "Insert current webpage"
+  },
+  "webpageReadingStatus": {
+    "message": "Reading the current webpage…"
+  },
+  "webpageUnavailableError": {
+    "message": "The current webpage cannot be read."
+  },
+  "webpageEmptyError": {
+    "message": "No readable page text was found."
+  },
+  "webpageTooLongError": {
+    "message": "The prepared page content is longer than $1 characters."
+  },
+  "webpageInsertedStatus": {
+    "message": "The webpage was inserted into ChatGPT. Review it and send manually."
+  },
+  "webpagePromptTitle": {
+    "message": "Title"
+  },
+  "webpagePromptSource": {
+    "message": "Source"
+  },
+  "webpagePromptContent": {
+    "message": "Page content"
+  },
+  "webpageTruncatedNote": {
+    "message": "[Page text was shortened to fit the limit.]"
   },
   "exportButton": {
     "message": "Export selected"
