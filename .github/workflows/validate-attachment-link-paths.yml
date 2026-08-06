@@ -1,0 +1,117 @@
+name: Validate attachment link paths
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate encoded portable attachment links
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-link-path-fix.js
+
+          python - <<'PY'
+          from pathlib import Path
+
+          entry = Path('extension/background-entry.js').read_text()
+          filename_fix = "importScripts('attachment-filename-preservation-fix.js')"
+          link_fix = "importScripts('attachment-link-path-fix.js')"
+          assert filename_fix in entry
+          assert link_fix in entry
+          assert entry.index(filename_fix) < entry.index(link_fix)
+          PY
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const { TextEncoder, TextDecoder } = require('util');
+
+          const context = {
+            console,
+            TextEncoder,
+            TextDecoder,
+            Uint8Array,
+            Uint32Array,
+            DataView,
+            Date,
+            URL,
+            atob,
+            btoa,
+            chrome: { i18n: { getUILanguage: () => 'uk' } }
+          };
+          context.self = context;
+          context.readThread = async () => ({ ok: true, content: '{}' });
+          context.exportThread = async () => ({});
+          context.normalizeFormat = (value) => value;
+          context.prepareThread = async () => ({});
+          vm.createContext(context);
+
+          for (const file of [
+            'html-export.js',
+            'html-assets.js',
+            'language-export.js',
+            'package-export.js',
+            'attachment-link-path-fix.js'
+          ]) {
+            vm.runInContext(
+              fs.readFileSync(`extension/${file}`, 'utf8'),
+              context,
+              { filename: file }
+            );
+          }
+
+          const rawPath = 'attachments/Резюме Гавриленко (2026).pdf';
+          const encodedPath = 'attachments/%D0%A0%D0%B5%D0%B7%D1%8E%D0%BC%D0%B5%20%D0%93%D0%B0%D0%B2%D1%80%D0%B8%D0%BB%D0%B5%D0%BD%D0%BA%D0%BE%20%282026%29.pdf';
+          const payload = {
+            title: 'Україна тест',
+            exportedAt: new Date().toISOString(),
+            source: 'https://chatgpt.com/c/test',
+            selectedCount: 1,
+            messageCount: 1,
+            messages: [{
+              index: 0,
+              role: 'user',
+              text: 'Український файл',
+              markdown: `Український файл\n\n### Included files\n\n- [Резюме Гавриленко (2026).pdf](${rawPath})`,
+              assets: [{
+                type: 'attachment',
+                path: rawPath,
+                filename: 'Резюме Гавриленко (2026).pdf'
+              }]
+            }]
+          };
+
+          const markdown = context.packageMarkdown(payload);
+          if (!markdown.includes(`](${encodedPath})`)) {
+            throw new Error('Portable Markdown attachment path was not encoded.');
+          }
+
+          const html = context.self.buildHtmlExport({
+            ok: true,
+            content: JSON.stringify(payload),
+            filename: 'test.json'
+          }).content;
+          if (!html.includes(`href="${encodedPath}"`)) {
+            throw new Error('Portable HTML attachment link was not rendered.');
+          }
+          if (!html.includes('<html lang="uk">')) {
+            throw new Error('HTML language detection wrapper was bypassed.');
+          }
+          if (payload.messages[0].assets[0].path !== rawPath) {
+            throw new Error('Stored attachment filename was changed.');
+          }
+
+          console.log('Attachment link path validation: PASS');
+          NODE
