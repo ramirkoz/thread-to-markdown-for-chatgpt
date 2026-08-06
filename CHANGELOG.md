@@ -13,6 +13,7 @@
 - Preserved attachment and download labels instead of dropping button-based links.
 - Added spacing between adjacent source badges and citation labels.
 - Removed empty list markers created by unsupported or control-only elements.
+- Removed ChatGPT service labels such as quote and code-copy controls from Markdown and JSON exports.
 - Kept local processing and the existing minimum permissions.
 - Added automated validation for JavaScript, localization, permissions, and package structure.
 - Changed release publishing so it runs only from version tags.
