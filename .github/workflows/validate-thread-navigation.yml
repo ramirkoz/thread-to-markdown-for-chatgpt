@@ -21,6 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check extension/popup.js
+          node --check extension/search-navigation.js
 
           python - <<'PY'
           import json
@@ -31,6 +32,7 @@ jobs:
           html = (root / 'popup.html').read_text()
           css = (root / 'popup.css').read_text()
           js = (root / 'popup.js').read_text()
+          search_js = (root / 'search-navigation.js').read_text()
 
           assert manifest['version'] == '1.7.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
@@ -41,6 +43,10 @@ jobs:
               'data-i18n-placeholder="searchMessagesPlaceholder"',
               'id="search-count"',
               'data-i18n="tocHeading"',
+              'id="previous-search-result"',
+              'id="next-search-result"',
+              'id="search-position"',
+              'src="search-navigation.js"',
           ):
               assert marker in html, marker
 
@@ -57,11 +63,27 @@ jobs:
               assert marker in js, marker
 
           for marker in (
+              'navigateSearchResult',
+              'previous-search-result',
+              'next-search-result',
+              'searchPosition',
+              "event.key !== 'Enter'",
+              'event.shiftKey ? -1 : 1',
+              'MutationObserver',
+              'search-current',
+          ):
+              assert marker in search_js, marker
+
+          for marker in (
               '.navigation-tools',
               '.search-field',
               '.toc-summary',
+              '.result-navigation',
+              '.result-nav-button',
+              '#search-position',
               '.message-number',
               '.message-open',
+              '.message-item.search-current',
               '.empty-search',
           ):
               assert marker in css, marker
@@ -72,6 +94,10 @@ jobs:
               'tocHeading',
               'searchResultCount',
               'noSearchResults',
+              'searchNavigationLabel',
+              'previousSearchResult',
+              'nextSearchResult',
+              'searchPosition',
               'openMessageButton',
               'navigatingStatus',
               'messageOpenedStatus',
