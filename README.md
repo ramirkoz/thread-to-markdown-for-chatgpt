@@ -1,6 +1,6 @@
 # Thread to Markdown for ChatGPT
 
-A small, privacy-first Chrome extension that exports the ChatGPT conversation currently open in your browser to local files or the clipboard.
+A small, privacy-first Chrome extension that searches, navigates, selects, and exports the ChatGPT conversation currently open in your browser to local files or the clipboard.
 
 > Independent and unofficial. Not affiliated with or endorsed by OpenAI.
 
@@ -15,6 +15,9 @@ The current Chrome Web Store version is 1.4.0. Development continues in this rep
 ## What it does
 
 - Loads user and assistant messages from the open conversation.
+- Shows a numbered thread contents list with role and text previews.
+- Searches the open thread locally by message text or role.
+- Opens a selected message directly in the ChatGPT page and briefly highlights it.
 - Lets the user select individual messages before export.
 - Exports selected messages as Markdown, HTML, PDF, ZIP, plain text, or JSON.
 - Copies selected messages to the clipboard locally.
@@ -27,13 +30,13 @@ The current Chrome Web Store version is 1.4.0. Development continues in this rep
 - Works only after an explicit user action.
 - Processes exports locally. No telemetry, tracking, developer server, or extension account is used.
 
-## Development version 1.6.0
+## Development version 1.7.0
 
-Version 1.5.0 completed message selection, Markdown/TXT/JSON export, clipboard copying, structured formatting, link cleanup, and removal of ChatGPT interface labels.
+Version 1.6.0 completed self-contained HTML export, automatic HTML language detection, guided local PDF creation, portable ZIP packaging, image capture, ordinary attachments, Unicode filenames, clickable packaged links, and assistant-generated downloadable PDFs.
 
-Version 1.6.0 includes self-contained HTML export, automatic HTML language detection, guided local PDF creation, and portable ZIP packaging. The ZIP contains `conversation.html`, `conversation.md`, `conversation.txt`, `conversation.json`, `manifest.json`, and any captured files under `assets/` or `attachments/`.
+Version 1.7.0 starts the navigation layer. The popup now contains a searchable, numbered thread contents list. Each entry can open the matching message in the current ChatGPT conversation and apply temporary visual highlighting.
 
-Asset capture is intentionally bounded: up to 40 detected files, 6 MB per file, and 16 MB total. ChatGPT temporary files that do not expose reusable bytes are listed in `manifest.json` with a skipped reason. Manual browser validation has passed for HTML, PDF print output, image capture, ZIP integrity, ordinary PDF attachments, Unicode filenames, and assistant-generated downloadable PDFs.
+The existing ZIP capture limits remain unchanged: up to 40 detected files, 6 MB per file, and 16 MB total. ChatGPT temporary files that do not expose reusable bytes are listed in `manifest.json` with a skipped reason.
 
 ## Install from source
 
@@ -49,7 +52,7 @@ Asset capture is intentionally bounded: up to 40 detected files, 6 MB per file, 
 | Permission | Why it is needed |
 |---|---|
 | `activeTab` | Access the tab explicitly selected by the user. |
-| `scripting` | Read the open conversation and reusable assets after the user requests an export. |
+| `scripting` | Read and navigate the open conversation and reusable assets after the user requests an action. |
 | `downloads` | Save the generated export file locally. |
 
 The extension requests no broad host permissions. ZIP asset capture may re-read file URLs already exposed by the currently open ChatGPT page, using that page's existing session. Captured content is written only into the local ZIP and is not sent to the developer or another service.
@@ -60,8 +63,8 @@ See [PRIVACY.md](PRIVACY.md). Conversation content stays on the user's device an
 
 ## Development roadmap
 
-- **1.6.0:** HTML/PDF, images, attachments, ZIP.
-- **1.7.0:** Navigation, search, and table of contents.
+- **1.6.0:** HTML/PDF, images, attachments, ZIP. Completed in development.
+- **1.7.0:** Navigation, search, and table of contents. In progress.
 - **1.8.0:** Local prompt library.
 - **1.9.0:** Send selected text, pages, screenshots, and YouTube subtitles into ChatGPT.
 - **2.0.0:** Folders, tags, notes, bulk export, and backups.
