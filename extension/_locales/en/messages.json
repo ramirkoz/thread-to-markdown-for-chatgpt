@@ -50,6 +50,18 @@
   "noSearchResults": {
     "message": "No matching messages."
   },
+  "searchNavigationLabel": {
+    "message": "Search result navigation"
+  },
+  "previousSearchResult": {
+    "message": "Previous search result"
+  },
+  "nextSearchResult": {
+    "message": "Next search result"
+  },
+  "searchPosition": {
+    "message": "$1 of $2"
+  },
   "openMessageButton": {
     "message": "Open message $1 in ChatGPT"
   },
