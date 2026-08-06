@@ -74,6 +74,62 @@
       </div>
     </section>
 
+    <details id="prompt-library" class="prompt-library">
+      <summary>
+        <span data-i18n="promptLibraryHeading">Local prompt library</span>
+        <span id="prompt-count">0</span>
+      </summary>
+      <div class="prompt-library-body">
+        <p class="prompt-library-note" data-i18n="promptLibraryPrivacy">Prompts are stored only in this browser profile.</p>
+
+        <label class="prompt-search-field" for="prompt-search">
+          <span data-i18n="promptSearchLabel">Search saved prompts</span>
+          <input
+            id="prompt-search"
+            type="search"
+            autocomplete="off"
+            data-i18n-placeholder="promptSearchPlaceholder"
+            placeholder="Search by name or text"
+          >
+        </label>
+
+        <p id="prompt-empty" class="prompt-empty" data-i18n="promptEmpty">No prompts saved yet.</p>
+        <div id="prompt-list" class="prompt-list" role="list"></div>
+
+        <button id="prompt-add" class="prompt-add" type="button" data-i18n="promptAdd">Add prompt</button>
+
+        <form id="prompt-form" class="prompt-form" hidden>
+          <label for="prompt-title">
+            <span data-i18n="promptTitleLabel">Prompt name</span>
+            <input
+              id="prompt-title"
+              type="text"
+              maxlength="120"
+              autocomplete="off"
+              required
+              data-i18n-placeholder="promptTitlePlaceholder"
+              placeholder="For example: Weekly report"
+            >
+          </label>
+          <label for="prompt-content">
+            <span data-i18n="promptContentLabel">Prompt text</span>
+            <textarea
+              id="prompt-content"
+              maxlength="12000"
+              rows="7"
+              required
+              data-i18n-placeholder="promptContentPlaceholder"
+              placeholder="Enter the reusable instruction"
+            ></textarea>
+          </label>
+          <div class="prompt-form-actions">
+            <button id="prompt-cancel" class="prompt-cancel" type="button" data-i18n="promptCancel">Cancel</button>
+            <button id="prompt-save" class="prompt-save" type="submit" data-i18n="promptSave">Save prompt</button>
+          </div>
+        </form>
+      </div>
+    </details>
+
     <div class="action-row">
       <button id="copy" class="secondary" type="button" data-i18n="copySelectedButton" disabled>Copy selected</button>
       <button id="export" class="primary" type="button" data-i18n="exportButton" disabled>Export selected</button>
@@ -88,5 +144,6 @@
   <script src="navigation-highlight-fix.js"></script>
   <script src="role-filter.js"></script>
   <script src="search-navigation.js"></script>
+  <script src="prompt-library.js"></script>
 </body>
 </html>
