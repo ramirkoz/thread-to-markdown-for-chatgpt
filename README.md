@@ -31,9 +31,9 @@ The current Chrome Web Store version is 1.4.0. Development continues in this rep
 
 Version 1.5.0 completed message selection, Markdown/TXT/JSON export, clipboard copying, structured formatting, link cleanup, and removal of ChatGPT interface labels.
 
-Version 1.6.0 currently includes self-contained HTML export, automatic HTML language detection, guided local PDF creation, and portable ZIP packaging. The ZIP contains `conversation.html`, `conversation.md`, `conversation.txt`, `conversation.json`, `manifest.json`, and any captured files under `assets/` or `attachments/`.
+Version 1.6.0 includes self-contained HTML export, automatic HTML language detection, guided local PDF creation, and portable ZIP packaging. The ZIP contains `conversation.html`, `conversation.md`, `conversation.txt`, `conversation.json`, `manifest.json`, and any captured files under `assets/` or `attachments/`.
 
-Asset capture is intentionally bounded: up to 40 detected files, 6 MB per file, and 16 MB total. ChatGPT temporary files that do not expose reusable bytes are listed in `manifest.json` with a skipped reason. Manual browser validation with real images and attachments is still required before 1.6.0 is considered complete.
+Asset capture is intentionally bounded: up to 40 detected files, 6 MB per file, and 16 MB total. ChatGPT temporary files that do not expose reusable bytes are listed in `manifest.json` with a skipped reason. Manual browser validation has passed for HTML, PDF print output, image capture, ZIP integrity, ordinary PDF attachments, Unicode filenames, and assistant-generated downloadable PDFs.
 
 ## Install from source
 
