@@ -1,0 +1,28 @@
+name: Validate output card annotation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate assistant output card annotation
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-output-card-annotation.js
+          grep -q "importScripts('attachment-output-card-annotation.js')" extension/background-entry.js
+          grep -q "data-thread-export-filename" extension/attachment-output-card-annotation.js
+          grep -q "filenamePattern" extension/attachment-output-card-annotation.js
+          grep -q "role !== 'assistant'" extension/attachment-output-card-annotation.js
+          grep -q "requestedFormat === 'zip'" extension/attachment-output-card-annotation.js
