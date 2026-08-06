@@ -19,10 +19,11 @@
 - Added a main-page-context fallback that observes ChatGPT fetches, object URLs, opened links, and signed attachment responses after activation.
 - Added Unicode-safe detection for assistant-generated output filenames, including Ukrainian filenames and names containing spaces.
 - Added an assistant-output proxy that activates hidden, delegated, or nearby download controls when a generated filename is rendered as plain text.
+- Added direct binding between assistant-generated filenames and the compact file-card download icon rendered beside the filename.
 - Added ZIP structure and CRC validation to CI.
 - Added HTML, PDF, and ZIP localization.
 - Kept local processing and the existing minimum permissions.
-- Manual image capture and Unicode filename detection passed; assistant-output byte capture remains under manual validation.
+- Manual image capture and Unicode filename detection passed; assistant-output download-button byte capture remains under manual validation.
 
 ## 1.5.0 — 2026-08-06
 
