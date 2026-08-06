@@ -1,0 +1,43 @@
+name: Validate output card geometric bridge
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate geometric generated file bridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/attachment-output-card-geometric-bridge.js
+
+          python - <<'PY'
+          from pathlib import Path
+
+          module = Path('extension/attachment-output-card-geometric-bridge.js').read_text()
+          entry = Path('extension/background-entry.js').read_text()
+
+          assert 'bridgeAssistantOutputControlsByGeometry' in module
+          assert 'NodeFilter.SHOW_TEXT' in module
+          assert 'candidateScore' in module
+          assert 'verticalDistance <= 180' in module
+          assert 'data-thread-export-index-bridge' in module
+          assert 'Download file' in module
+          assert "importScripts('attachment-output-card-geometric-bridge.js')" in entry
+          assert entry.index("importScripts('attachment-output-index-fix.js')") < entry.index(
+              "importScripts('attachment-output-card-geometric-bridge.js')"
+          )
+
+          print('Generated file geometric bridge: PASS')
+          PY
