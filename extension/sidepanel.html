@@ -6,6 +6,7 @@
   <title>Thread to Markdown</title>
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="sidepanel.css">
+  <link rel="stylesheet" href="thread-workspace.css">
 </head>
 <body class="sidepanel-mode">
   <main class="panel">
@@ -100,6 +101,66 @@
       </div>
     </details>
 
+    <details id="thread-workspace" class="thread-workspace">
+      <summary>
+        <span>Local workspace / Локальна бібліотека чатів</span>
+        <span id="workspace-count" class="workspace-count">0</span>
+      </summary>
+      <div class="workspace-body">
+        <p class="workspace-note">Folders, tags, notes and Markdown snapshots stay in this browser profile. / Папки, теги, нотатки та знімки Markdown зберігаються локально.</p>
+
+        <section class="workspace-current">
+          <strong id="workspace-current-title">Current conversation</strong>
+          <label>
+            <span>Folder / Папка</span>
+            <input id="workspace-folder" type="text" maxlength="80" list="workspace-folder-list" autocomplete="off" placeholder="Projects / Проєкти">
+            <datalist id="workspace-folder-list"></datalist>
+          </label>
+          <label>
+            <span>Tags / Теги</span>
+            <input id="workspace-tags" type="text" maxlength="500" autocomplete="off" placeholder="research, work, important">
+          </label>
+          <label>
+            <span>Note / Нотатка</span>
+            <textarea id="workspace-note" maxlength="8000" rows="3" placeholder="Local note about this conversation / Локальна нотатка про цю розмову"></textarea>
+          </label>
+          <div class="workspace-row">
+            <button id="workspace-save-current" class="workspace-button primary" type="button">Save current chat / Зберегти чат</button>
+            <button id="workspace-clear-meta" class="workspace-button" type="button">Clear fields / Очистити поля</button>
+          </div>
+        </section>
+
+        <div class="workspace-toolbar">
+          <label>
+            <span>Search / Пошук</span>
+            <input id="workspace-search" type="search" autocomplete="off" placeholder="Title, tag, note / Назва, тег, нотатка">
+          </label>
+          <label>
+            <span>Folder / Папка</span>
+            <select id="workspace-folder-filter"><option value="">All folders / Усі папки</option></select>
+          </label>
+        </div>
+
+        <p id="workspace-empty" class="workspace-empty">No saved chats yet. / Збережених чатів ще немає.</p>
+        <div id="workspace-list" class="workspace-list" role="list"></div>
+
+        <div class="workspace-bulk-actions">
+          <button id="workspace-export-selected" class="workspace-button primary" type="button" disabled>Export selected ZIP / Експорт вибраних ZIP</button>
+          <button id="workspace-delete-selected" class="workspace-button danger" type="button" disabled>Delete selected / Видалити вибрані</button>
+        </div>
+
+        <section class="workspace-backup">
+          <strong>Backup / Резервна копія</strong>
+          <p class="workspace-note">Backup includes saved chats and the local prompt library. / Копія містить збережені чати та локальну бібліотеку промптів.</p>
+          <div class="workspace-backup-actions">
+            <button id="workspace-backup" class="workspace-button" type="button">Create backup / Створити копію</button>
+            <button id="workspace-restore" class="workspace-button" type="button">Restore backup / Відновити</button>
+            <input id="workspace-restore-file" type="file" accept="application/json,.json" hidden>
+          </div>
+        </section>
+      </div>
+    </details>
+
     <div class="action-row">
       <button id="copy" class="secondary" type="button" data-i18n="copySelectedButton" disabled>Copy selected</button>
       <button id="export" class="primary" type="button" data-i18n="exportButton" disabled>Export selected</button>
@@ -115,5 +176,6 @@
   <script src="role-filter.js"></script>
   <script src="search-navigation.js"></script>
   <script src="prompt-library.js"></script>
+  <script src="thread-workspace.js"></script>
 </body>
 </html>
