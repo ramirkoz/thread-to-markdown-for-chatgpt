@@ -21,6 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check extension/youtube-subtitles-to-chatgpt.js
+          node --check extension/youtube-player-caption-fix.js
 
           python - <<'PY'
           import json
@@ -31,6 +32,7 @@ jobs:
           html = (root / 'popup.html').read_text()
           css = (root / 'youtube-handoff.css').read_text()
           js = (root / 'youtube-subtitles-to-chatgpt.js').read_text()
+          fix = (root / 'youtube-player-caption-fix.js').read_text()
 
           assert manifest['version'] == '1.9.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
@@ -43,6 +45,7 @@ jobs:
               'id="send-youtube-subtitles-to-chatgpt"',
               'data-youtube-i18n="heading"',
               'src="youtube-subtitles-to-chatgpt.js"',
+              'src="youtube-player-caption-fix.js"',
           ):
               assert marker in html, marker
 
@@ -55,23 +58,28 @@ jobs:
               "world: 'MAIN'",
               'extractYoutubeTranscript',
               'ytInitialPlayerResponse',
-              'raw_player_response',
               'captionTracks',
-              'fetch(location.href',
-              'parsePlayerResponseFromHtml',
-              "listUrl.searchParams.set('type', 'list')",
-              "new DOMParser()",
-              "captionUrl.searchParams.set('fmt', 'json3')",
-              "credentials: 'include'",
               'transcriptFromDom',
               'clickTranscriptUi',
-              'ytd-transcript-segment-renderer .segment-text',
-              'engagement-panel-searchable-transcript',
-              'show\\s+transcript',
-              "source: 'youtube-transcript-panel'",
               "type: 'insert-selected-text'",
           ):
               assert marker in js, marker
+
+          for marker in (
+              "event.stopImmediatePropagation()",
+              'readActiveYoutubeCaptions',
+              "document.getElementById('movie_player')",
+              'getPlayerResponse',
+              "getOption?.('captions', 'tracklist')",
+              "getOption?.('captions', 'track')",
+              "INNERTUBE_API_KEY",
+              "new URL('/youtubei/v1/player'",
+              'playerCaptionsTracklistRenderer',
+              'captionTracks',
+              'ytd-transcript-segment-renderer',
+              "type: 'insert-selected-text'",
+          ):
+              assert marker in fix, marker
 
           for forbidden in (
               'requestSubmit(',
@@ -79,7 +87,7 @@ jobs:
               'send-button',
               'host_permissions',
           ):
-              assert forbidden not in js, forbidden
+              assert forbidden not in fix, forbidden
 
           for marker in (
               '.youtube-handoff',
