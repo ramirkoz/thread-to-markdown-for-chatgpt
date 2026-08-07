@@ -1,21 +1,21 @@
 # Privacy Policy — Thread to Markdown for ChatGPT
 
-**Effective date:** 6 August 2026  
+**Effective date:** 7 August 2026  
 **Published extension version:** 1.4.0  
 **Development version:** 1.9.0
 
 ## Summary
 
-Thread to Markdown for ChatGPT exports the conversation currently open in the user's browser to local files, stores reusable prompts locally in the browser profile, and can insert text explicitly selected by the user or cleaned content from the current webpage into a new ChatGPT chat. The extension processes selected content on the user's device and does not send conversation content, saved prompts, selected text, extracted webpage content, browsing history, account information, or generated files to the developer or to an extension-operated service.
+Thread to Markdown for ChatGPT exports the conversation currently open in the user's browser to local files, stores reusable prompts locally in the browser profile, and can insert text explicitly selected by the user, cleaned content from the current webpage, or a user-requested screenshot into a new ChatGPT chat. The extension processes selected content on the user's device and does not send conversation content, saved prompts, selected text, extracted webpage content, screenshots, browsing history, account information, or generated files to the developer or to an extension-operated service.
 
 ## Data handled by the extension
 
-After the user starts an export, navigation, selected-text action, or webpage action, the extension temporarily reads the visible content or selected text from the active page so it can perform the requested operation. This content may include personal communications, uploaded images, attachment labels, page titles, URLs, and user-generated content because it comes from the page or conversation chosen by the user.
+After the user starts an export, navigation, selected-text action, webpage action, or screenshot action, the extension temporarily reads or captures the active page so it can perform the requested operation. This content may include personal communications, uploaded images, attachment labels, page titles, URLs, visible page pixels, and user-generated content because it comes from the page or conversation chosen by the user.
 
 The extension:
 
 - does not collect data on a developer-controlled remote server;
-- does not transmit conversation content, prompts, selected text, extracted webpage content, or URLs to the developer;
+- does not transmit conversation content, prompts, selected text, extracted webpage content, screenshots, or URLs to the developer;
 - does not use analytics, telemetry, advertising, tracking pixels, cookies, or fingerprinting;
 - does not sell or share user data;
 - does not retain a copy of exported or handed-off content after completing the requested action;
@@ -54,6 +54,17 @@ The development webpage feature reads the current page title, source URL, and vi
 - Extracted webpage content and the source URL are not sent to the developer or to an extension-operated service.
 - Optional ChatGPT access is requested only when the user activates a handoff feature.
 
+## Screenshot handoff
+
+The development screenshot feature captures only the currently visible area of the active browser tab after the user presses the screenshot action. The image is encoded locally as JPEG and attached to a new ChatGPT message.
+
+- The extension does not automatically send the message.
+- The screenshot is not saved by the extension as a local file and is not retained after the handoff completes.
+- The screenshot is passed directly from the active tab to the new ChatGPT tab inside the browser.
+- Screenshot data is not sent to the developer or to an extension-operated service.
+- A size limit is applied before the screenshot is handed off.
+- Optional ChatGPT access is requested only when the user activates a handoff feature.
+
 ## ZIP images and attachments
 
 The development ZIP export can capture reusable images and attachments exposed by the currently open ChatGPT conversation. To do this, the page may re-read the file URL already provided by ChatGPT using the user's existing ChatGPT session.
@@ -65,20 +76,20 @@ The development ZIP export can capture reusable images and attachments exposed b
 
 ## Permission use
 
-- **activeTab:** access only to the page or conversation where the user explicitly opens the extension.
-- **scripting:** read selected text or cleaned webpage content, read and navigate the open conversation, insert text into ChatGPT, and access reusable assets after the user requests an action.
+- **activeTab:** access only to the page or conversation where the user explicitly opens the extension, including a user-requested visible screenshot.
+- **scripting:** read selected text or cleaned webpage content, read and navigate the open conversation, insert content into ChatGPT, and access reusable assets after the user requests an action.
 - **downloads:** save generated export files locally.
-- **Optional `https://chatgpt.com/*` access:** insert user-selected or webpage-derived text into a new ChatGPT message field after explicit approval.
+- **Optional `https://chatgpt.com/*` access:** insert user-selected or webpage-derived text or attach a user-requested screenshot in a new ChatGPT message after explicit approval.
 
 No broad mandatory host permission is requested.
 
 ## Limited Use
 
-Use of information received from browser permissions is limited to the extension's stated purposes: navigating the user-selected conversation, exporting it to local files, maintaining a user-controlled local prompt library, and inserting user-selected or webpage-derived text into ChatGPT. The information is not transferred to the developer, used for advertising, used for profiling, or made available for human review by the developer.
+Use of information received from browser permissions is limited to the extension's stated purposes: navigating the user-selected conversation, exporting it to local files, maintaining a user-controlled local prompt library, and inserting user-selected, webpage-derived, or screenshot content into ChatGPT. The information is not transferred to the developer, used for advertising, used for profiling, or made available for human review by the developer.
 
 ## Security
 
-Processing, package generation, navigation, prompt storage, selected-text handoff, and webpage handoff happen inside the browser. The extension contains no remotely hosted code. ZIP asset capture may re-request a file URL already exposed by the active ChatGPT page, but the extension does not send exported content, prompts, selected text, or extracted webpage content to a developer-controlled server or to an unrelated third party.
+Processing, package generation, navigation, prompt storage, selected-text handoff, webpage handoff, and screenshot handoff happen inside the browser. The extension contains no remotely hosted code. ZIP asset capture may re-request a file URL already exposed by the active ChatGPT page, but the extension does not send exported content, prompts, selected text, extracted webpage content, or screenshots to a developer-controlled server or to an unrelated third party.
 
 ## Changes
 
