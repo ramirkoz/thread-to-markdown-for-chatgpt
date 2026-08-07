@@ -1,16 +1,16 @@
-# Thread to Markdown for ChatGPT
+# ChatExtra Toolkit
 
-A privacy-first Chrome extension that searches, navigates, organizes, and exports ChatGPT conversations locally. It also keeps reusable prompts, can hand selected website content to ChatGPT, and stores optional local conversation snapshots with folders, tags, notes, bulk export, and backups.
+A privacy-first Chrome extension for ChatGPT workflows: search, navigate, organize, and export conversations locally; keep reusable prompts; hand selected website content to ChatGPT; and store optional local conversation snapshots with folders, tags, notes, bulk export, and backups.
 
 > Independent and unofficial. Not affiliated with or endorsed by OpenAI.
 
 ## Install from Chrome Web Store
 
-[Install Thread to Markdown for ChatGPT](https://chromewebstore.google.com/detail/thread-to-markdown-for-ch/ingagbhapppiiiccljbhiledobnmhhfb)
+[Install the current published version](https://chromewebstore.google.com/detail/thread-to-markdown-for-ch/ingagbhapppiiiccljbhiledobnmhhfb)
 
 Chrome Web Store extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
 
-The current Chrome Web Store version is 1.4.0. Development continues in this repository; the store package will be updated after the planned feature set is complete and tested.
+The current Chrome Web Store version is 1.4.0 under the previous product name. Version 2.0.0 is the rebranded ChatExtra Toolkit release candidate for the same extension ID. The repository slug is intentionally retained for compatibility with existing links.
 
 ## What it does
 
@@ -40,7 +40,7 @@ The current Chrome Web Store version is 1.4.0. Development continues in this rep
 - Works only after an explicit user action.
 - Uses no telemetry, tracking, developer server, or extension account.
 
-## Development version 2.0.0
+## Version 2.0.0
 
 Version 2.0.0 adds a local workspace for saved ChatGPT conversations. Saving a conversation stores its current Markdown snapshot together with its ChatGPT URL, title, folder, tags, note, message count, and timestamps in the extension's IndexedDB database. Saved chats can be searched and filtered locally and reopened in ChatGPT.
 
@@ -48,7 +48,9 @@ Multiple saved chats can be selected and exported as one ZIP. The ZIP contains o
 
 The backup action exports all saved workspace records plus the existing local prompt library to a JSON file. Restore replaces the local workspace and prompt library only after explicit confirmation. No new browser permission is required for the 2.0 workspace.
 
-The toolbar remains context-aware: on ChatGPT it opens the conversation/export interface; on other sites it opens the website tools interface. Website tools include selected text, cleaned page content, visible screenshots, and YouTube transcripts where available.
+The toolbar uses deterministic click-time routing. Every click checks the active tab: on ChatGPT it opens the primary conversation/export interface; on other sites it opens the website tools interface. This removes stale tab-routing state that could previously show the wrong popup until a page refresh.
+
+The primary ChatGPT workflow is intentionally first in the interface. Export/copy controls appear before the prompt library and saved-chat workspace, keeping the original conversation-export purpose visually dominant.
 
 ## Install from source
 
@@ -74,13 +76,19 @@ The prompt library and 2.0 local workspace use extension-owned browser storage a
 
 See [PRIVACY.md](PRIVACY.md). Conversation content, saved conversation snapshots, saved prompts, selected text, extracted webpage content, YouTube transcript text, and screenshots stay on the user's device until the user explicitly exports them or hands content to ChatGPT. They are not sent to the developer or an extension-operated service.
 
-## Development roadmap
+## Release history
 
-- **1.6.0:** HTML/PDF, images, attachments, ZIP. Completed in development.
-- **1.7.0:** Navigation, search, and table of contents. Completed in development.
-- **1.8.0:** Local prompt library. Completed in development.
-- **1.9.0:** Context-aware website tools for selected text, pages, screenshots, and YouTube transcripts. Completed in development.
-- **2.0.0:** Folders, tags, notes, saved Markdown snapshots, bulk export, and backups. In development testing.
+- **1.4.0:** Current Chrome Web Store version.
+- **1.5.0:** Message selection and structured export formats.
+- **1.6.0:** HTML/PDF, images, attachments, portable ZIP.
+- **1.7.0:** Navigation, search, and table of contents.
+- **1.8.0:** Local prompt library.
+- **1.9.0:** Context-aware website tools for selected text, pages, screenshots, and YouTube transcripts.
+- **2.0.0:** Folders, tags, notes, saved Markdown snapshots, bulk export, backups, deterministic toolbar routing, and ChatExtra Toolkit rebrand.
+
+## User manual
+
+See [USER_MANUAL_UK.md](USER_MANUAL_UK.md) for a detailed Ukrainian guide covering installation, ChatGPT export, website tools, prompt library, saved chats, bulk ZIP export, backup/restore, and troubleshooting.
 
 ## Support development
 
