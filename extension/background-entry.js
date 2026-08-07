@@ -71,6 +71,7 @@ importScripts('html-assets.js');
 importScripts('language-export.js');
 importScripts('pdf-export.js');
 importScripts('package-export.js');
+importScripts('workspace-bulk-export.js');
 importScripts('attachment-export-fix.js');
 importScripts('attachment-preview-filter.js');
 importScripts('attachment-relative-url-fix.js');
