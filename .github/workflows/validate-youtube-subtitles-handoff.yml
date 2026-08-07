@@ -55,9 +55,14 @@ jobs:
               "world: 'MAIN'",
               'extractYoutubeTranscript',
               'ytInitialPlayerResponse',
+              'raw_player_response',
               'captionTracks',
+              'fetch(location.href',
+              'parsePlayerResponseFromHtml',
+              "listUrl.searchParams.set('type', 'list')",
+              "new DOMParser()",
               "captionUrl.searchParams.set('fmt', 'json3')",
-              "fetch(captionUrl.toString(), { credentials: 'include' })",
+              "credentials: 'include'",
               "type: 'insert-selected-text'",
           ):
               assert marker in js, marker
