@@ -37,6 +37,14 @@
       <button id="send-webpage-to-chatgpt" class="send-webpage-button" type="button" data-i18n="sendWebpageButton">Insert current webpage</button>
     </section>
 
+    <section id="screenshot-handoff" class="screenshot-handoff">
+      <div>
+        <strong data-i18n="sendScreenshotHeading">Send visible screenshot to ChatGPT</strong>
+        <p data-i18n="sendScreenshotDescription">The currently visible browser area will be captured and attached to a new ChatGPT chat without being sent automatically.</p>
+      </div>
+      <button id="send-screenshot-to-chatgpt" class="send-screenshot-button" type="button" data-i18n="sendScreenshotButton">Attach visible screenshot</button>
+    </section>
+
     <section id="selection" class="selection" hidden>
       <div class="selection-head">
         <div>
@@ -163,5 +171,6 @@
   <script src="prompt-library.js"></script>
   <script src="selected-text-to-chatgpt.js"></script>
   <script src="webpage-to-chatgpt.js"></script>
+  <script src="screenshot-to-chatgpt.js"></script>
 </body>
 </html>
