@@ -92,33 +92,117 @@
         const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         const normalize = (value) => String(value || '').replace(/\s+/g, ' ').trim();
         const timestamp = /^\d{1,2}:\d{2}(?::\d{2})?$/;
-        const cleanLines = (raw) => String(raw || '').split(/\r?\n/).map(normalize).filter((line) => line && !timestamp.test(line));
-        const selectors = ['ytd-transcript-segment-renderer','ytd-transcript-segment-view-model','yt-transcript-segment-view-model','ytd-transcript-renderer','ytd-transcript-segment-list-renderer','[target-id*="transcript"]'];
-        const read = () => {
-          let best = [];
-          for (const selector of selectors) {
-            for (const node of document.querySelectorAll(selector)) {
-              const lines = cleanLines(node.innerText || node.textContent || '');
-              if (lines.length > best.length) best = lines;
+        const uiNoise = /^(?:текст відео|пошук у текстовій версії|transcript|show transcript|search transcript)$/iu;
+
+        const visible = (node) => {
+          if (!(node instanceof Element)) return false;
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+        };
+
+        const cleanText = (value) => normalize(value)
+          .replace(/^\d{1,2}:\d{2}(?::\d{2})?\s*/, '')
+          .trim();
+
+        const addUnique = (list, value) => {
+          const text = cleanText(value);
+          if (!text || timestamp.test(text) || uiNoise.test(text)) return;
+          if (text.length < 2) return;
+          if (list[list.length - 1] !== text) list.push(text);
+        };
+
+        const readKnownSegments = () => {
+          const lines = [];
+          const segmentSelectors = [
+            'ytd-transcript-segment-renderer',
+            'ytd-transcript-segment-view-model',
+            'yt-transcript-segment-view-model',
+            '[class*="transcript-segment"]',
+            '[class*="segment-item"]'
+          ];
+          const textSelectors = [
+            '.segment-text',
+            '[class*="segment-text"]',
+            'yt-formatted-string[class*="segment"]',
+            '[class*="cue"]'
+          ];
+
+          for (const selector of segmentSelectors) {
+            for (const segment of document.querySelectorAll(selector)) {
+              if (!visible(segment)) continue;
+              let found = '';
+              for (const textSelector of textSelectors) {
+                const node = segment.querySelector(textSelector);
+                const candidate = cleanText(node?.innerText || node?.textContent || '');
+                if (candidate && !uiNoise.test(candidate) && !timestamp.test(candidate)) {
+                  found = candidate;
+                  break;
+                }
+              }
+              if (!found) {
+                const parts = String(segment.innerText || segment.textContent || '')
+                  .split(/\r?\n/)
+                  .map(cleanText)
+                  .filter((part) => part && !timestamp.test(part) && !uiNoise.test(part));
+                found = parts.join(' ');
+              }
+              addUnique(lines, found);
             }
           }
-          return best;
+          return lines;
         };
-        let lines = read();
+
+        const readVisibleTimedRows = () => {
+          const lines = [];
+          const candidates = [...document.querySelectorAll('span,div,p,button')]
+            .filter((node) => visible(node) && timestamp.test(normalize(node.textContent || '')));
+
+          for (const timeNode of candidates) {
+            let row = timeNode.closest('ytd-transcript-segment-renderer, ytd-transcript-segment-view-model, yt-transcript-segment-view-model, [class*="transcript-segment"], [class*="segment-item"], [role="button"]');
+            if (!row) row = timeNode.parentElement;
+            if (!row) continue;
+
+            let text = '';
+            const preferred = row.querySelector?.('.segment-text, [class*="segment-text"], yt-formatted-string, [class*="cue"]');
+            if (preferred && preferred !== timeNode) text = preferred.innerText || preferred.textContent || '';
+
+            if (!cleanText(text) || timestamp.test(cleanText(text))) {
+              const parts = String(row.innerText || row.textContent || '')
+                .split(/\r?\n/)
+                .map(cleanText)
+                .filter((part) => part && !timestamp.test(part) && !uiNoise.test(part));
+              text = parts.join(' ');
+            }
+            addUnique(lines, text);
+          }
+          return lines;
+        };
+
+        const readTranscript = () => {
+          const known = readKnownSegments();
+          const timed = readVisibleTimedRows();
+          return timed.length > known.length ? timed : known;
+        };
+
+        let lines = readTranscript();
         if (lines.length < 2) {
           const pattern = /(show\s+transcript|transcript|показати\s+текст\s+відео|текст\s+відео|стенограм|розшифров|расшифров)/iu;
-          const controls = [...document.querySelectorAll('button,[role="button"],ytd-button-renderer,tp-yt-paper-button')];
+          const controls = [...document.querySelectorAll('button,[role="button"],ytd-button-renderer,tp-yt-paper-button')]
+            .filter(visible);
           const target = controls.find((element) => pattern.test(normalize(`${element.textContent || ''} ${element.getAttribute?.('aria-label') || ''}`)));
           try { target?.click?.(); } catch {}
-          const deadline = Date.now() + 5000;
+
+          const deadline = Date.now() + 5500;
           while (lines.length < 2 && Date.now() < deadline) {
             await wait(200);
-            lines = read();
+            lines = readTranscript();
           }
         }
+
         return {
           title: normalize(document.querySelector('h1 yt-formatted-string')?.textContent || document.title.replace(/\s*-\s*YouTube\s*$/i, '')),
-          text: lines.join('\n').slice(0, 26000)
+          text: lines.length >= 2 ? lines.join('\n').slice(0, 26000) : ''
         };
       }
     });
