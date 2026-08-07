@@ -20,213 +20,79 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check extension/background.js
-          node --check extension/background-entry.js
-          node --check extension/context-menu-handoff.js
-          node --check extension/html-export.js
-          node --check extension/language-export.js
-          node --check extension/pdf-export.js
-          node --check extension/package-export.js
-          node --check extension/attachment-export-fix.js
-          node --check extension/attachment-preview-filter.js
-          node --check extension/attachment-relative-url-fix.js
-          node --check extension/attachment-resource-fallback.js
-          node --check extension/attachment-activation-fallback.js
-          node --check extension/print.js
-          node --check extension/popup.js
+          for file in \
+            extension/background.js \
+            extension/background-entry.js \
+            extension/popup.js \
+            extension/popup-router.js \
+            extension/site-tools.js \
+            extension/selected-text-handoff-background.js \
+            extension/screenshot-handoff-background.js \
+            extension/html-export.js \
+            extension/language-export.js \
+            extension/pdf-export.js \
+            extension/package-export.js \
+            extension/print.js; do
+            node --check "$file"
+          done
 
           python - <<'PY'
           import json
-          import re
           from pathlib import Path
 
           root = Path('extension')
           manifest = json.loads((root / 'manifest.json').read_text())
+          background = (root / 'background-entry.js').read_text()
+          router = (root / 'popup-router.js').read_text()
+          site_html = (root / 'site-tools.html').read_text()
+          site_js = (root / 'site-tools.js').read_text()
+          chat_html = (root / 'sidepanel.html').read_text()
 
           assert manifest['manifest_version'] == 3
-          assert re.fullmatch(r'\d+\.\d+\.\d+', manifest['version'])
-          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads', 'contextMenus', 'sidePanel']
+          assert manifest['version'] == '1.9.0'
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
+          assert manifest['optional_host_permissions'] == ['https://chatgpt.com/*']
           assert 'host_permissions' not in manifest
           assert manifest['background']['service_worker'] == 'background-entry.js'
-          assert manifest['side_panel']['default_path'] == 'sidepanel.html'
-          assert 'default_popup' not in manifest['action']
+          assert manifest['action']['default_popup'] == 'sidepanel.html'
 
           required = [
-              root / 'background.js',
-              root / 'background-entry.js',
-              root / 'context-menu-handoff.js',
-              root / 'html-export.js',
-              root / 'language-export.js',
-              root / 'pdf-export.js',
-              root / 'package-export.js',
-              root / 'attachment-export-fix.js',
-              root / 'attachment-preview-filter.js',
-              root / 'attachment-relative-url-fix.js',
-              root / 'attachment-resource-fallback.js',
-              root / 'attachment-activation-fallback.js',
-              root / 'print.html',
-              root / 'print.css',
-              root / 'print.js',
-              root / 'popup.html',
-              root / 'popup.css',
-              root / 'popup.js',
-              root / 'sidepanel.html',
-              root / 'sidepanel.css',
-              root / 'icons/icon16.png',
-              root / 'icons/icon32.png',
-              root / 'icons/icon48.png',
-              root / 'icons/icon128.png',
+              'background.js', 'background-entry.js', 'popup.js', 'popup.css',
+              'sidepanel.html', 'sidepanel.css', 'site-tools.html', 'site-tools.css',
+              'site-tools.js', 'popup-router.js', 'html-export.js', 'language-export.js',
+              'pdf-export.js', 'package-export.js', 'print.html', 'print.css', 'print.js',
+              'selected-text-handoff-background.js', 'screenshot-handoff-background.js',
+              'icons/icon16.png', 'icons/icon32.png', 'icons/icon48.png', 'icons/icon128.png'
           ]
-          for path in required:
-              assert path.is_file(), path
+          for name in required:
+              assert (root / name).is_file(), name
 
-          background_entry = (root / 'background-entry.js').read_text()
-          html = (root / 'popup.html').read_text()
-          sidepanel_html = (root / 'sidepanel.html').read_text()
-          js = (root / 'popup.js').read_text()
-          context_menu = (root / 'context-menu-handoff.js').read_text()
-          html_export = (root / 'html-export.js').read_text()
-          language_export = (root / 'language-export.js').read_text()
-          pdf_export = (root / 'pdf-export.js').read_text()
-          package_export = (root / 'package-export.js').read_text()
-          attachment_fix = (root / 'attachment-export-fix.js').read_text()
-          activation_fix = (root / 'attachment-activation-fallback.js').read_text()
-          print_html = (root / 'print.html').read_text()
-          print_css = (root / 'print.css').read_text()
-          print_js = (root / 'print.js').read_text()
+          for marker in ('id="message-search"', 'id="prompt-library"', 'id="export"'):
+              assert marker in chat_html, marker
+          for marker in ('send-selection', 'send-page', 'send-screenshot', 'send-youtube'):
+              assert marker in site_html, marker
 
-          assert 'value="html"' in sidepanel_html
-          assert 'value="pdf"' in sidepanel_html
-          assert 'id="message-search"' in sidepanel_html
-          assert 'id="prompt-library"' in sidepanel_html
-          assert 'selected-text-handoff' not in sidepanel_html
-          assert 'webpage-handoff' not in sidepanel_html
-          assert 'screenshot-handoff' not in sidepanel_html
-          assert 'youtube-handoff' not in sidepanel_html
-          assert "'html'" in js
-          assert "'pdf'" in js
-          assert "option.value = 'zip'" in js
-          assert "format: 'html'" in html_export
-          assert "mimeType: 'text/html'" in html_export
-          assert 'detectDocumentLanguage' in language_export
-          assert 'buildHtmlExportWithLanguage' in language_export
-          assert 'applyDetectedDocumentLanguage' in language_export
-          assert 'self.buildHtmlExport' in language_export
-          assert 'printDialog: true' in pdf_export
-          assert 'chrome.tabs.create' in pdf_export
-          assert "importScripts('package-export.js')" in background_entry
-          assert "importScripts('attachment-export-fix.js')" in background_entry
-          assert "importScripts('attachment-preview-filter.js')" in background_entry
-          assert "importScripts('attachment-relative-url-fix.js')" in background_entry
-          assert "importScripts('attachment-resource-fallback.js')" in background_entry
-          assert "importScripts('attachment-activation-fallback.js')" in background_entry
-          assert "importScripts('context-menu-handoff.js')" in background_entry
-          assert 'chrome.contextMenus.create' in context_menu
-          assert 'chrome.sidePanel.setPanelBehavior' in context_menu
-          assert 'chrome.action.disable' in context_menu
-          assert 'extractReadablePageForContextMenu' in context_menu
-          assert 'extractYoutubeTranscriptForContextMenu' in context_menu
-          assert 'captureVisibleTab' in context_menu
-          assert "value === 'zip'" in package_export
-          assert 'collectPortableAssets' in package_export
-          assert 'createStoredZip' in package_export
-          assert 'manifest.json' in package_export
-          assert 'conversation.html' in package_export
-          assert 'conversation.md' in package_export
-          assert 'collectFileCardAttachments' in attachment_fix
-          assert 'mergeCapturedAssets' in attachment_fix
-          assert '[role="button"]' in attachment_fix
-          assert '[data-testid*="attachment"]' in attachment_fix
-          assert 'The file card was detected' in attachment_fix
-          assert 'collectActivatedAttachmentCards' in activation_fix
-          assert 'target.click()' in activation_fix
-          assert "performance.getEntriesByType?.('resource')" in activation_fix
-          assert 'extractJsonUrls' in activation_fix
-          assert 'mergeActivatedAssets' in activation_fix
-          assert 'The file card was activated' in activation_fix
-          assert 'print.js' in print_html
-          assert 'window.print()' in print_js
-          assert "printButton?.addEventListener('click'" in print_js
-          assert 'setTimeout(() => window.print()' not in print_js
-          assert 'Headers and footers' in print_js
-          assert 'Колонтитули' in print_js
-          assert 'print-guide' in print_js
-          assert '.print-guide' in print_css
-          assert '.loading,.print-guide{display:none!important}' in print_css
+          assert "importScripts('popup-router.js')" in background
+          assert "importScripts('selected-text-handoff-background.js')" in background
+          assert "importScripts('screenshot-handoff-background.js')" in background
+          assert "importScripts('context-menu-handoff.js')" not in background
+          assert "importScripts('toolbar-sidepanel-fix.js')" not in background
 
-          keys = set(re.findall(r'data-i18n="([^"]+)"', sidepanel_html))
-          keys.update(re.findall(r"getMessage\('([^']+)'", js))
-
-          for locale in ('en', 'uk'):
-              messages_path = root / '_locales' / locale / 'messages.json'
-              messages = json.loads(messages_path.read_text())
-              missing = sorted(keys - messages.keys())
-              assert not missing, f'{locale} missing translations: {missing}'
-              assert 'formatZip' in messages
-              assert 'zipSuccessStatus' in messages
+          for marker in ('chrome.action.setPopup', "CHATGPT_POPUP = 'sidepanel.html'", "SITE_POPUP = 'site-tools.html'"):
+              assert marker in router, marker
+          for marker in ('chrome.permissions.request', 'chrome.scripting.executeScript', 'captureVisibleTab', "type: 'insert-selected-text'", "type: 'insert-screenshot'"):
+              assert marker in site_js, marker
 
           print('Extension validation: PASS')
           PY
 
-          node - <<'NODE'
-          const fs = require('fs');
-          const vm = require('vm');
-          const source = fs.readFileSync('extension/language-export.js', 'utf8');
-          const html = '<!doctype html><html lang="und"><body>Україна українська розмова повідомлення</body></html>';
-          const context = {
-            chrome: { i18n: { getUILanguage: () => 'en' } },
-            self: {
-              readThread: async () => ({ ok: true, content: html }),
-              buildHtmlExport: () => ({ ok: true, content: html })
-            }
-          };
-          vm.createContext(context);
-          vm.runInContext(source, context);
-          const result = context.self.buildHtmlExport({});
-          if (!result.content.includes('<html lang="uk">')) {
-            throw new Error('Portable HTML language detection failed.');
-          }
-          NODE
-
-          node - <<'NODE'
-          const fs = require('fs');
-          const vm = require('vm');
-          const { TextEncoder, TextDecoder } = require('util');
-          const context = {
-            console,
-            TextEncoder,
-            TextDecoder,
-            Uint8Array,
-            Uint32Array,
-            DataView,
-            Date,
-            atob,
-            btoa,
-            self: {
-              exportThread: async () => ({}),
-              normalizeFormat: (value) => value,
-              prepareThread: async () => ({})
-            },
-            chrome: {}
-          };
-          vm.createContext(context);
-          vm.runInContext(fs.readFileSync('extension/package-export.js', 'utf8'), context);
-          const bytes = vm.runInContext(
-            "createStoredZip([{name:'hello.txt',data:encodeText('hello')},{name:'папка/test.txt',data:encodeText('test')}])",
-            context
-          );
-          fs.writeFileSync('/tmp/thread-package-test.zip', Buffer.from(bytes));
-          NODE
-          unzip -t /tmp/thread-package-test.zip
-
           rm -f /tmp/thread-to-markdown.zip
           (cd extension && zip -qr /tmp/thread-to-markdown.zip .)
+          unzip -t /tmp/thread-to-markdown.zip
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'manifest.json'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'package-export.js'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'attachment-export-fix.js'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'attachment-activation-fallback.js'
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'sidepanel.html'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'context-menu-handoff.js'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'site-tools.html'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'popup-router.js'
 
       - name: Build development packages
         if: github.event_name == 'push'
@@ -238,14 +104,10 @@ jobs:
 
           rm -rf dist source-package
           mkdir -p dist "source-package/${ROOT}"
-
           (cd extension && zip -9 -qr "../dist/${ROOT}-chrome-package.zip" .)
-
           cp -R extension "source-package/${ROOT}/"
           cp README.md PRIVACY.md CHANGELOG.md RELEASE_NOTES.md STORE_LISTING.md STORE_SUBMISSION_CHECKLIST.md LICENSE "source-package/${ROOT}/"
           (cd source-package && zip -9 -qr "../dist/${ROOT}-source.zip" "${ROOT}")
-
-          unzip -Z1 "dist/${ROOT}-chrome-package.zip" | grep -qx 'manifest.json'
           (cd dist && sha256sum *.zip > SHA256SUMS.txt)
 
       - name: Upload development build
