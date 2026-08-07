@@ -34,8 +34,6 @@
     const value = String(text || '').trim();
     if (!value) throw new Error('Немає тексту для передачі.');
     if (value.length > 30000) throw new Error('Текст завеликий для передачі.');
-    const allowed = await ensurePermission();
-    if (!allowed) throw new Error('Потрібен дозвіл на відкриття ChatGPT.');
     const response = await chrome.runtime.sendMessage({ type: 'insert-selected-text', text: value });
     if (!response?.ok) throw new Error(response?.error || 'Не вдалося вставити текст у ChatGPT.');
   }
@@ -44,6 +42,8 @@
     setBusy(true);
     setStatus(label);
     try {
+      const allowed = await ensurePermission();
+      if (!allowed) throw new Error('Потрібен дозвіл на відкриття ChatGPT.');
       await action();
       setStatus('Готово. Вміст вставлено в новий чат без автоматичного надсилання.', 'success');
     } catch (error) {
@@ -143,8 +143,6 @@
 
   screenshotButton.addEventListener('click', () => {
     void withAction('Створюю видимий скриншот…', async () => {
-      const allowed = await ensurePermission();
-      if (!allowed) throw new Error('Потрібен дозвіл на відкриття ChatGPT.');
       if (!Number.isInteger(activeTab?.windowId)) throw new Error('Не знайдено активне вікно.');
       const dataUrl = await chrome.tabs.captureVisibleTab(activeTab.windowId, { format: 'jpeg', quality: 92 });
       const filename = `screenshot-${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`;
