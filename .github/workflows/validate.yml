@@ -26,6 +26,8 @@ jobs:
             extension/popup.js \
             extension/popup-router.js \
             extension/site-tools.js \
+            extension/thread-workspace.js \
+            extension/workspace-bulk-export.js \
             extension/selected-text-handoff-background.js \
             extension/screenshot-handoff-background.js \
             extension/html-export.js \
@@ -47,9 +49,11 @@ jobs:
           site_html = (root / 'site-tools.html').read_text()
           site_js = (root / 'site-tools.js').read_text()
           chat_html = (root / 'sidepanel.html').read_text()
+          workspace_js = (root / 'thread-workspace.js').read_text()
+          bulk_js = (root / 'workspace-bulk-export.js').read_text()
 
           assert manifest['manifest_version'] == 3
-          assert manifest['version'] == '1.9.0'
+          assert manifest['version'] == '2.0.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
           assert manifest['optional_host_permissions'] == ['https://chatgpt.com/*']
           assert 'host_permissions' not in manifest
@@ -59,7 +63,8 @@ jobs:
           required = [
               'background.js', 'background-entry.js', 'popup.js', 'popup.css',
               'sidepanel.html', 'sidepanel.css', 'site-tools.html', 'site-tools.css',
-              'site-tools.js', 'popup-router.js', 'html-export.js', 'language-export.js',
+              'site-tools.js', 'popup-router.js', 'thread-workspace.js', 'thread-workspace.css',
+              'workspace-bulk-export.js', 'html-export.js', 'language-export.js',
               'pdf-export.js', 'package-export.js', 'print.html', 'print.css', 'print.js',
               'selected-text-handoff-background.js', 'screenshot-handoff-background.js',
               'icons/icon16.png', 'icons/icon32.png', 'icons/icon48.png', 'icons/icon128.png'
@@ -67,12 +72,13 @@ jobs:
           for name in required:
               assert (root / name).is_file(), name
 
-          for marker in ('id="message-search"', 'id="prompt-library"', 'id="export"'):
+          for marker in ('id="message-search"', 'id="prompt-library"', 'id="thread-workspace"', 'id="workspace-save-current"', 'id="workspace-export-selected"', 'id="workspace-backup"', 'id="export"'):
               assert marker in chat_html, marker
           for marker in ('send-selection', 'send-page', 'send-screenshot', 'send-youtube'):
               assert marker in site_html, marker
 
           assert "importScripts('popup-router.js')" in background
+          assert "importScripts('workspace-bulk-export.js')" in background
           assert "importScripts('selected-text-handoff-background.js')" in background
           assert "importScripts('screenshot-handoff-background.js')" in background
           assert "importScripts('context-menu-handoff.js')" not in background
@@ -82,6 +88,10 @@ jobs:
               assert marker in router, marker
           for marker in ('chrome.permissions.request', 'chrome.scripting.executeScript', 'captureVisibleTab', "type: 'insert-selected-text'", "type: 'insert-screenshot'"):
               assert marker in site_js, marker
+          for marker in ('indexedDB.open', 'workspace-bulk-export', 'thread-to-markdown-local-backup', 'prepare-thread', 'folder', 'tags', 'note'):
+              assert marker in workspace_js, marker
+          for marker in ('createStoredZip', 'library.json', 'chats/', 'MAX_TOTAL_BYTES'):
+              assert marker in bulk_js, marker
 
           print('Extension validation: PASS')
           PY
@@ -93,6 +103,8 @@ jobs:
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'sidepanel.html'
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'site-tools.html'
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'popup-router.js'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'thread-workspace.js'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'workspace-bulk-export.js'
 
       - name: Build development packages
         if: github.event_name == 'push'
