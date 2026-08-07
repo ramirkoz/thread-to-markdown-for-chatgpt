@@ -29,6 +29,7 @@ jobs:
 
           root = Path('extension')
           manifest = json.loads((root / 'manifest.json').read_text())
+          entry_html = (root / 'popup-entry.html').read_text()
           chat_html = (root / 'sidepanel.html').read_text()
           site_html = (root / 'site-tools.html').read_text()
           site_css = (root / 'site-tools.css').read_text()
@@ -36,28 +37,35 @@ jobs:
           site_js = (root / 'site-tools.js').read_text()
           background = (root / 'background-entry.js').read_text()
 
+          assert manifest['name'] == 'ChatExtra Toolkit'
           assert manifest['version'] == '2.0.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
-          assert manifest['action']['default_popup'] == 'sidepanel.html'
+          assert manifest['action']['default_popup'] == 'popup-entry.html'
           assert 'contextMenus' not in manifest['permissions']
           assert 'sidePanel' not in manifest['permissions']
 
+          assert 'src="popup-router.js"' in entry_html
           assert 'id="message-search"' in chat_html
           assert 'id="prompt-library"' in chat_html
           assert 'id="thread-workspace"' in chat_html
           assert 'id="export"' in chat_html
+          assert chat_html.index('id="export"') < chat_html.index('id="prompt-library"')
+          assert chat_html.index('id="export"') < chat_html.index('id="thread-workspace"')
 
           for marker in ('send-selection', 'send-page', 'send-screenshot', 'send-youtube'):
               assert marker in site_html, marker
           assert 'width:420px' in site_css
 
-          for marker in ('chrome.action.setPopup', "CHATGPT_POPUP = 'sidepanel.html'", "SITE_POPUP = 'site-tools.html'", 'chrome.tabs.onActivated', 'chrome.tabs.onUpdated'):
+          for marker in ("CHATGPT_POPUP = 'sidepanel.html'", "SITE_POPUP = 'site-tools.html'", 'chrome.tabs.query', 'location.replace'):
               assert marker in router, marker
+          assert 'chrome.action.setPopup' not in router
+          assert 'chrome.tabs.onActivated' not in router
+          assert 'chrome.tabs.onUpdated' not in router
 
           for marker in ('chrome.permissions.request', 'chrome.scripting.executeScript', 'captureVisibleTab', "type: 'insert-selected-text'", "type: 'insert-screenshot'", 'readYoutubeTranscript'):
               assert marker in site_js, marker
 
-          assert "importScripts('popup-router.js')" in background
+          assert "importScripts('popup-router.js')" not in background
           assert "importScripts('context-menu-handoff.js')" not in background
           assert "importScripts('toolbar-sidepanel-fix.js')" not in background
 
