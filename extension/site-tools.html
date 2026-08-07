@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thread to Markdown</title>
+  <link rel="stylesheet" href="site-tools.css">
+</head>
+<body>
+  <main class="site-popup">
+    <header class="site-header">
+      <img src="icons/icon48.png" alt="" width="40" height="40">
+      <div>
+        <h1>Передати в ChatGPT</h1>
+        <p id="site-name">Поточна сторінка</p>
+      </div>
+    </header>
+
+    <section class="site-note">
+      <strong>Інструменти сайту</strong>
+      <span>Виберіть, що вставити у новий чат. Нічого не надсилається автоматично.</span>
+    </section>
+
+    <div class="site-actions">
+      <button id="send-selection" type="button">Виділений текст</button>
+      <button id="send-page" type="button">Поточна сторінка</button>
+      <button id="send-screenshot" type="button">Видимий скриншот</button>
+      <button id="send-youtube" class="youtube" type="button" hidden>Субтитри YouTube</button>
+    </div>
+
+    <p id="status" class="status" role="status" aria-live="polite">Готово до роботи.</p>
+    <footer>Локальна обробка. Неофіційне розширення.</footer>
+  </main>
+  <script src="site-tools.js"></script>
+</body>
+</html>
