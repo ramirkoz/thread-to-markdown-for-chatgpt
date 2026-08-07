@@ -1,0 +1,7 @@
+.youtube-handoff { margin: 0 0 14px; padding: 12px; border: 1px solid #fecaca; border-radius: 10px; background: #fef2f2; }
+.youtube-handoff strong { display: block; color: #991b1b; font-size: 12px; }
+.youtube-handoff p { margin: 4px 0 10px; color: #b91c1c; font-size: 10px; line-height: 1.45; }
+.send-youtube-button { width: 100%; border: 0; border-radius: 8px; padding: 9px 11px; background: #b91c1c; color: white; font-size: 11px; font-weight: 800; }
+.send-youtube-button:hover:not(:disabled) { background: #991b1b; }
+.send-youtube-button:focus-visible { outline: 3px solid #fca5a5; outline-offset: 2px; }
+.send-youtube-button:disabled { opacity: .55; cursor: not-allowed; }
