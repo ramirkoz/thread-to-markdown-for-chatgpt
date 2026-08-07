@@ -3,7 +3,7 @@
     "message": "Гілка ChatGPT у Markdown"
   },
   "extensionDescription": {
-    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT, зберігає локальні промпти й передає виділений текст або вебсторінку в ChatGPT."
+    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT, зберігає локальні промпти й передає виділений текст, вебсторінку або скриншот у ChatGPT."
   },
   "actionTitle": {
     "message": "Експортувати гілку ChatGPT"
@@ -33,7 +33,7 @@
     "message": "Зчитуємо виділений текст…"
   },
   "chatGptPermissionDeniedError": {
-    "message": "Не надано дозвіл на вставлення тексту в ChatGPT."
+    "message": "Не надано дозвіл на вставлення вмісту в ChatGPT."
   },
   "selectionUnavailableError": {
     "message": "На цій сторінці неможливо прочитати виділений текст."
@@ -94,6 +94,30 @@
   },
   "webpageTruncatedNote": {
     "message": "[Текст сторінки скорочено відповідно до ліміту.]"
+  },
+  "sendScreenshotHeading": {
+    "message": "Передати видимий скриншот у ChatGPT"
+  },
+  "sendScreenshotDescription": {
+    "message": "Видиму область поточної вкладки буде знято та прикріплено до нового чату без автоматичного надсилання."
+  },
+  "sendScreenshotButton": {
+    "message": "Прикріпити видимий скриншот"
+  },
+  "screenshotCapturingStatus": {
+    "message": "Знімаємо видиму область сторінки…"
+  },
+  "screenshotUnavailableError": {
+    "message": "На цій сторінці неможливо зробити скриншот."
+  },
+  "screenshotTooLargeError": {
+    "message": "Скриншот завеликий для безпечного передавання."
+  },
+  "screenshotAttachmentError": {
+    "message": "Не вдалося прикріпити скриншот у ChatGPT."
+  },
+  "screenshotInsertedStatus": {
+    "message": "Скриншот прикріплено в ChatGPT. Перевірте його та надішліть вручну."
   },
   "exportButton": {
     "message": "Експортувати вибране"
