@@ -1,8 +1,10 @@
 # Changelog
 
-## 2.0.0 — Unreleased
+## 2.0.0 — 2026-08-07
 
-- Started the 2.0.0 development cycle without submitting an intermediate Chrome Web Store update.
+- Rebranded the extension as **ChatExtra Toolkit** while keeping the existing extension ID and repository for continuity.
+- Kept the original ChatGPT conversation export workflow visually primary by moving the prompt library and saved-chat workspace below the Copy/Export controls.
+- Replaced background per-tab popup state with click-time routing through `popup-entry.html`, eliminating the stale-menu issue that could show website tools on a ChatGPT tab until the page was refreshed.
 - Added a local conversation workspace backed by extension-owned IndexedDB storage.
 - Added explicit saving and updating of the current ChatGPT conversation as a Markdown snapshot with source URL, title, message count, and timestamps.
 - Added user-defined folders, tags, and local notes for saved conversations.
@@ -13,9 +15,10 @@
 - Added JSON backup and restore for the complete local workspace plus the existing local prompt library.
 - Added confirmation before destructive restore or bulk deletion.
 - Added a maximum of 250 saved workspace records.
-- Added dedicated automated validation for workspace UI, IndexedDB integration, background ZIP generation, ZIP structure, and CRC integrity.
+- Added a detailed Ukrainian user manual covering all primary and secondary workflows.
+- Prepared updated privacy and Chrome Web Store listing documentation for the 2.0 product scope.
 - Kept the existing `activeTab`, `scripting`, and `downloads` permissions with no new broad host permission.
-- Manual browser validation of the 2.0 workspace is pending.
+- Manual browser validation passed for the 2.0 workspace and the final context-aware interface behavior.
 
 ## 1.9.0 — 2026-08-07
 
