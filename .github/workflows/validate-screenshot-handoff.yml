@@ -76,10 +76,13 @@ jobs:
               "new ClipboardEvent('paste'",
               'chrome.tabs.update',
               'clearComposer',
+              'composerText',
+              'settleImageOnlyComposer',
               'deleteContentBackward',
               "setter.call(element, '')",
               'element.replaceChildren()',
-              'Screenshot mode',
+              'await settleImageOnlyComposer()',
+              'imageOnly: true',
           ):
               assert marker in background_js, marker
 
