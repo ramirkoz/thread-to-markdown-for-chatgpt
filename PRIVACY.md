@@ -1,12 +1,12 @@
-# Privacy Policy — Thread to Markdown for ChatGPT
+# Privacy Policy — ChatExtra Toolkit
 
 **Effective date:** 7 August 2026  
-**Published extension version:** 1.4.0  
-**Development version:** 2.0.0
+**Current Chrome Web Store version:** 1.4.0 under the previous product name  
+**Current release candidate:** 2.0.0 — ChatExtra Toolkit
 
 ## Summary
 
-Thread to Markdown for ChatGPT exports the conversation currently open in the user's browser to local files, stores reusable prompts and user-saved conversation snapshots locally in the browser profile, and can insert user-requested website content into a new ChatGPT chat. The extension does not send conversation content, saved prompts, saved workspace records, selected text, extracted webpage content, YouTube transcript text, screenshots, browsing history, account information, or generated files to the developer or to an extension-operated service.
+ChatExtra Toolkit exports the conversation currently open in the user's browser to local files, stores reusable prompts and user-saved conversation snapshots locally in the browser profile, and can insert user-requested website content into a new ChatGPT chat. The extension does not send conversation content, saved prompts, saved workspace records, selected text, extracted webpage content, YouTube transcript text, screenshots, browsing history, account information, or generated files to the developer or to an extension-operated service.
 
 ## Data handled by the extension
 
@@ -15,7 +15,7 @@ After the user starts an export, navigation, save-to-workspace, selected-text, w
 The extension:
 
 - does not collect data on a developer-controlled remote server;
-- does not transmit conversation content, prompts, workspace records, selected text, extracted webpage content, screenshots, or URLs to the developer;
+- does not transmit conversation content, prompts, workspace records, selected text, extracted webpage content, screenshots, transcript text, or URLs to the developer;
 - does not use analytics, telemetry, advertising, tracking pixels, cookies, or fingerprinting;
 - does not sell or share user data;
 - does not retain temporary handoff content after completing the requested action;
@@ -36,7 +36,7 @@ The local prompt library stores prompt names and prompt text in storage belongin
 
 ## Local conversation workspace
 
-Development version 2.0.0 adds an optional local workspace for conversations that the user explicitly chooses to save.
+Version 2.0.0 adds an optional local workspace for conversations that the user explicitly chooses to save.
 
 A saved workspace record may contain:
 
@@ -115,7 +115,7 @@ The ZIP export can capture reusable images and attachments exposed by the curren
 
 - **activeTab:** access only to the page or conversation where the user explicitly opens the extension, including a user-requested visible screenshot.
 - **scripting:** read selected text, cleaned webpage content, YouTube transcript text, the open conversation, navigation targets, and reusable assets after the user requests an action.
-- **downloads:** save generated export files and bulk workspace ZIP files locally.
+- **downloads:** save generated export files, bulk workspace ZIP files, and local backups.
 - **Optional `https://chatgpt.com/*` access:** insert user-requested text or attach a user-requested screenshot in a new ChatGPT message after explicit approval.
 
 No broad mandatory host permission is requested. The local prompt library and 2.0 workspace use browser storage owned by the extension and require no additional browser permission.
@@ -130,7 +130,7 @@ Processing, package generation, navigation, local workspace storage, prompt stor
 
 ## Changes
 
-Chrome Web Store privacy disclosures will be updated before any development behavior is published to store users.
+Chrome Web Store privacy disclosures will be updated when version 2.0.0 is submitted to the existing store item.
 
 ## Contact
 
@@ -138,4 +138,4 @@ For privacy or support questions: **kozyriev@uafree.org**
 
 ## Trademark notice
 
-This is an independent, unofficial extension. It is not created, supported, certified, or endorsed by OpenAI. ChatGPT and OpenAI are trademarks of OpenAI.
+ChatExtra Toolkit is an independent, unofficial extension. It is not created, supported, certified, sponsored, or endorsed by OpenAI. ChatGPT and OpenAI are trademarks of OpenAI.
