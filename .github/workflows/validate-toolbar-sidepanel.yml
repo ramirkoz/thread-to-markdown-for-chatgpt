@@ -36,7 +36,7 @@ jobs:
           site_js = (root / 'site-tools.js').read_text()
           background = (root / 'background-entry.js').read_text()
 
-          assert manifest['version'] == '1.9.0'
+          assert manifest['version'] == '2.0.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
           assert manifest['action']['default_popup'] == 'sidepanel.html'
           assert 'contextMenus' not in manifest['permissions']
@@ -44,6 +44,7 @@ jobs:
 
           assert 'id="message-search"' in chat_html
           assert 'id="prompt-library"' in chat_html
+          assert 'id="thread-workspace"' in chat_html
           assert 'id="export"' in chat_html
 
           for marker in ('send-selection', 'send-page', 'send-screenshot', 'send-youtube'):
