@@ -62,64 +62,69 @@ jobs:
           const vm = require('vm');
           const { TextEncoder, TextDecoder } = require('util');
 
-          let listener = null;
-          let downloadUrl = '';
-          const context = {
-            console,
-            TextEncoder,
-            TextDecoder,
-            Uint8Array,
-            Uint32Array,
-            DataView,
-            Date,
-            atob,
-            btoa,
-            setTimeout,
-            clearTimeout,
-            self: {
-              exportThread: async () => ({}),
-              normalizeFormat: (value) => value,
-              prepareThread: async () => ({})
-            },
-            chrome: {
-              runtime: { onMessage: { addListener(fn) { listener = fn; } } },
-              downloads: { async download(options) { downloadUrl = options.url; return 7; } },
-              action: {
-                setBadgeBackgroundColor: async () => {},
-                setBadgeText: async () => {}
+          (async () => {
+            let listener = null;
+            let downloadUrl = '';
+            const context = {
+              console,
+              TextEncoder,
+              TextDecoder,
+              Uint8Array,
+              Uint32Array,
+              DataView,
+              Date,
+              atob,
+              btoa,
+              setTimeout,
+              clearTimeout,
+              self: {
+                exportThread: async () => ({}),
+                normalizeFormat: (value) => value,
+                prepareThread: async () => ({})
               },
-              scripting: { executeScript: async () => [] }
-            }
-          };
-          vm.createContext(context);
-          vm.runInContext(fs.readFileSync('extension/package-export.js', 'utf8'), context);
-          vm.runInContext(fs.readFileSync('extension/workspace-bulk-export.js', 'utf8'), context);
-          if (typeof listener !== 'function') throw new Error('Workspace listener was not registered.');
+              chrome: {
+                runtime: { onMessage: { addListener(fn) { listener = fn; } } },
+                downloads: { async download(options) { downloadUrl = options.url; return 7; } },
+                action: {
+                  setBadgeBackgroundColor: async () => {},
+                  setBadgeText: async () => {}
+                },
+                scripting: { executeScript: async () => [] }
+              }
+            };
+            vm.createContext(context);
+            vm.runInContext(fs.readFileSync('extension/package-export.js', 'utf8'), context);
+            vm.runInContext(fs.readFileSync('extension/workspace-bulk-export.js', 'utf8'), context);
+            if (typeof listener !== 'function') throw new Error('Workspace listener was not registered.');
 
-          const response = await new Promise((resolve) => {
-            const keepAlive = listener({
-              type: 'workspace-bulk-export',
-              items: [{
-                id: 'one',
-                title: 'Тестова розмова',
-                url: 'https://chatgpt.com/c/test',
-                folder: 'Проєкти',
-                tags: ['тест'],
-                note: 'note',
-                markdown: '# Test\n\nHello',
-                messageCount: 2,
-                savedAt: '2026-08-07T00:00:00.000Z',
-                updatedAt: '2026-08-07T00:00:00.000Z'
-              }]
-            }, {}, resolve);
-            if (keepAlive !== true) throw new Error('Workspace listener did not keep the channel alive.');
+            const response = await new Promise((resolve) => {
+              const keepAlive = listener({
+                type: 'workspace-bulk-export',
+                items: [{
+                  id: 'one',
+                  title: 'Тестова розмова',
+                  url: 'https://chatgpt.com/c/test',
+                  folder: 'Проєкти',
+                  tags: ['тест'],
+                  note: 'note',
+                  markdown: '# Test\n\nHello',
+                  messageCount: 2,
+                  savedAt: '2026-08-07T00:00:00.000Z',
+                  updatedAt: '2026-08-07T00:00:00.000Z'
+                }]
+              }, {}, resolve);
+              if (keepAlive !== true) throw new Error('Workspace listener did not keep the channel alive.');
+            });
+            if (!response?.ok || response.count !== 1 || response.downloadId !== 7) {
+              throw new Error(`Unexpected workspace response: ${JSON.stringify(response)}`);
+            }
+            const match = String(downloadUrl).match(/^data:application\/zip;base64,(.+)$/s);
+            if (!match) throw new Error('Workspace ZIP data URL was not created.');
+            fs.writeFileSync('/tmp/workspace-v2.zip', Buffer.from(match[1], 'base64'));
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
           });
-          if (!response?.ok || response.count !== 1 || response.downloadId !== 7) {
-            throw new Error(`Unexpected workspace response: ${JSON.stringify(response)}`);
-          }
-          const match = String(downloadUrl).match(/^data:application\/zip;base64,(.+)$/s);
-          if (!match) throw new Error('Workspace ZIP data URL was not created.');
-          fs.writeFileSync('/tmp/workspace-v2.zip', Buffer.from(match[1], 'base64'));
           NODE
 
           unzip -t /tmp/workspace-v2.zip
