@@ -125,6 +125,77 @@ async function attachScreenshotToChatGpt(dataUrl, filename) {
     return style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
   };
 
+  const findComposer = () => {
+    for (const selector of composerSelectors) {
+      const composer = [...document.querySelectorAll(selector)]
+        .find((element) => visible(element) && !element.disabled);
+      if (composer) return composer;
+    }
+    return null;
+  };
+
+  const dispatchComposerInput = (element) => {
+    try {
+      element.dispatchEvent(new InputEvent('input', {
+        bubbles: true,
+        inputType: 'deleteContentBackward',
+        data: null
+      }));
+    } catch {
+      element.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  };
+
+  const clearComposer = (element) => {
+    if (!element) return;
+    element.focus();
+
+    if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+      const prototype = element instanceof HTMLTextAreaElement
+        ? HTMLTextAreaElement.prototype
+        : HTMLInputElement.prototype;
+      const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+      if (setter) setter.call(element, '');
+      else element.value = '';
+      dispatchComposerInput(element);
+      return;
+    }
+
+    if (element.isContentEditable) {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      let cleared = false;
+      try {
+        cleared = document.execCommand('delete', false);
+      } catch {
+        cleared = false;
+      }
+      if (!cleared || String(element.textContent || '').trim()) {
+        element.replaceChildren();
+      }
+      selection?.removeAllRanges();
+      dispatchComposerInput(element);
+    }
+  };
+
+  // A newly opened ChatGPT tab can restore an older unsent draft. Screenshot mode
+  // must be image-only, so clear any restored composer text before attaching.
+  const composerDeadline = Date.now() + 8000;
+  let composer = null;
+  while (Date.now() < composerDeadline) {
+    composer = findComposer();
+    if (composer) break;
+    await wait(200);
+  }
+  if (composer) {
+    clearComposer(composer);
+    await wait(150);
+  }
+
   const attachmentCount = () => document.querySelectorAll(
     '[data-testid*="attachment" i], [data-testid*="upload" i], img[src^="blob:"], img[src^="data:image/"]'
   ).length;
@@ -160,14 +231,12 @@ async function attachScreenshotToChatGpt(dataUrl, filename) {
 
   const deadline = Date.now() + 12000;
   while (Date.now() < deadline) {
-    let composer = null;
-    for (const selector of composerSelectors) {
-      composer = [...document.querySelectorAll(selector)]
-        .find((element) => visible(element) && !element.disabled);
-      if (composer) break;
-    }
+    composer = findComposer();
 
     if (composer) {
+      // Clear once more before the paste fallback in case ChatGPT restored draft
+      // content while the attachment controls were being initialized.
+      clearComposer(composer);
       const before = attachmentCount();
       const transfer = new DataTransfer();
       transfer.items.add(file);
