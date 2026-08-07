@@ -3,7 +3,7 @@
     "message": "Thread to Markdown for ChatGPT"
   },
   "extensionDescription": {
-    "message": "Search, navigate, select, and export ChatGPT messages, save local prompts, and send selected text or the current webpage into ChatGPT."
+    "message": "Search, navigate, select, and export ChatGPT messages, save local prompts, and send selected text, the current webpage, or a screenshot into ChatGPT."
   },
   "actionTitle": {
     "message": "Export ChatGPT thread"
@@ -33,7 +33,7 @@
     "message": "Reading the selected text…"
   },
   "chatGptPermissionDeniedError": {
-    "message": "Permission to insert text into ChatGPT was not granted."
+    "message": "Permission to insert content into ChatGPT was not granted."
   },
   "selectionUnavailableError": {
     "message": "The selected text cannot be read on this page."
@@ -94,6 +94,30 @@
   },
   "webpageTruncatedNote": {
     "message": "[Page text was shortened to fit the limit.]"
+  },
+  "sendScreenshotHeading": {
+    "message": "Send visible screenshot to ChatGPT"
+  },
+  "sendScreenshotDescription": {
+    "message": "The currently visible browser area will be captured and attached to a new ChatGPT chat without being sent automatically."
+  },
+  "sendScreenshotButton": {
+    "message": "Attach visible screenshot"
+  },
+  "screenshotCapturingStatus": {
+    "message": "Capturing the visible page…"
+  },
+  "screenshotUnavailableError": {
+    "message": "The visible page cannot be captured."
+  },
+  "screenshotTooLargeError": {
+    "message": "The screenshot is too large to hand off safely."
+  },
+  "screenshotAttachmentError": {
+    "message": "The screenshot could not be attached in ChatGPT."
+  },
+  "screenshotInsertedStatus": {
+    "message": "The screenshot was attached in ChatGPT. Review it and send manually."
   },
   "exportButton": {
     "message": "Export selected"
