@@ -14,6 +14,11 @@
 - Added local removal of navigation, forms, sidebars, advertisements, scripts, and other common page noise before insertion.
 - Added automatic page-text shortening with a visible note when the 30,000-character handoff limit would be exceeded.
 - Added English and Ukrainian localization and automated validation for webpage handoff.
+- Manual browser validation passed for webpage handoff into a new ChatGPT chat without automatic sending.
+- Added a third handoff action that captures the currently visible browser area as a local JPEG screenshot.
+- Added attachment of the captured screenshot to a new ChatGPT chat without automatically sending the message.
+- Added file-input and paste fallbacks for ChatGPT image attachment plus screenshot size validation.
+- Added English and Ukrainian localization and automated validation for screenshot handoff.
 
 ## 1.8.0 — 2026-08-06
 
