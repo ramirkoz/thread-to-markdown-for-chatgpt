@@ -1,37 +1,66 @@
-# Thread to Markdown for ChatGPT 1.5.0
+# ChatExtra Toolkit 2.0.0
 
-Message selection and structured export release.
+Major local-workflow release and product rebrand.
 
 ## Chrome Web Store
 
-[Install Thread to Markdown for ChatGPT](https://chromewebstore.google.com/detail/thread-to-markdown-for-ch/ingagbhapppiiiccljbhiledobnmhhfb)
+Existing item: https://chromewebstore.google.com/detail/thread-to-markdown-for-ch/ingagbhapppiiiccljbhiledobnmhhfb
 
 Extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
 
-The Chrome Web Store currently serves version 1.4.0. Version 1.5.0 is prepared for submission after final package review.
+Version 2.0.0 is intended to be submitted as an update to the existing Chrome Web Store item, preserving the same extension ID, installed user base, and listing history.
+
+## Product name
+
+**ChatExtra Toolkit**
+
+The product remains independent and unofficial. It is not affiliated with or endorsed by OpenAI.
 
 ## Highlights
 
-- Compact preview of messages detected in the open ChatGPT conversation.
-- Individual message selection before export.
-- Select all, Clear, live selection count, and empty-selection protection.
-- Markdown, plain-text, and JSON export formats.
-- Local clipboard copying for selected messages.
-- Structured Markdown preservation for headings, links, emphasis, blockquotes, ordered and unordered lists, nested lists, tables, inline code, and fenced code blocks.
-- JSON includes both plain text and structured Markdown for each selected message.
-- Cleanup of empty list markers, interface-only controls, code-copy labels, citation labels, and temporary attachment links.
-- English and Ukrainian interface localization.
-- Local processing only with the same minimum permissions: `activeTab`, `scripting`, and `downloads`.
+- Keeps ChatGPT conversation export as the primary workflow.
+- Moves the local prompt library and saved-chat workspace below the Copy/Export controls.
+- Adds deterministic click-time popup routing so ChatGPT tabs reliably open conversation tools and other sites reliably open website tools without requiring a page refresh.
+- Adds local folders, tags, and notes for explicitly saved conversation snapshots.
+- Adds local search and folder filtering for saved chats.
+- Adds reopening of saved ChatGPT URLs.
+- Adds bulk ZIP export of selected saved conversations with Markdown files, folder paths, `library.json`, and README metadata.
+- Adds JSON backup and restore for saved chats plus the local prompt library.
+- Retains selected-text, cleaned-page, visible-screenshot, and YouTube-transcript handoff into a new ChatGPT chat without automatic sending.
+- Retains Markdown, HTML, PDF, portable ZIP, TXT, JSON, clipboard copy, search, role filters, navigation, and attachment capture.
+- Adds a detailed Ukrainian user manual.
+- Keeps the required permission list unchanged: `activeTab`, `scripting`, and `downloads`.
+- Keeps optional access limited to `https://chatgpt.com/*` for user-triggered handoff actions.
 
 ## Privacy
 
-The extension does not upload conversation content or generated files. It uses no telemetry, analytics, tracking, advertising, remote code, or custom server.
+ChatExtra Toolkit has no telemetry, analytics, advertising, developer server, or remotely hosted executable code.
+
+Conversation content, saved snapshots, prompts, selected text, webpage content, transcript text, screenshots, and generated exports are not sent to the extension developer.
+
+## Local workspace limits
+
+- Maximum saved workspace records: 250.
+- Maximum chats in one bulk ZIP operation: 100.
+- Maximum stored Markdown in one bulk ZIP operation: 12 MB.
+- Portable conversation ZIP asset limits remain 40 detected files, 6 MB per file, 16 MB total.
 
 ## Package verification
 
-The release workflow validates JavaScript syntax, Manifest V3, the exact permission list, localization files, required package files, the service-worker entry point, and `manifest.json` at the Chrome Web Store ZIP root.
+Automated checks validate:
 
-Compare downloaded ZIP files with `SHA256SUMS.txt`.
+- Manifest V3 and version 2.0.0;
+- product name and popup routing;
+- exact browser permissions;
+- JavaScript syntax;
+- ChatGPT export UI and site-tools UI;
+- workspace IndexedDB integration;
+- bulk ZIP generation and ZIP integrity;
+- prompt library;
+- search and navigation;
+- selected-text, webpage, screenshot, and YouTube handoff modules;
+- attachment and portable ZIP modules;
+- final package structure and SHA-256 checksums.
 
 ## Installation for testing
 
@@ -40,18 +69,32 @@ Compare downloaded ZIP files with `SHA256SUMS.txt`.
 3. Enable Developer mode.
 4. Select Load unpacked.
 5. Choose the `extension` folder.
+6. Open a ChatGPT conversation and click ChatExtra Toolkit.
+7. Open a normal website and click the same icon to confirm website tools.
 
 ## Test status
 
-- Automated package validation: PASS.
-- Message loading and selection: PASS.
-- Selected-message Markdown export: PASS.
-- TXT export: PASS.
-- JSON export: PASS.
-- Clipboard copying: PASS.
-- Structured tables, lists, links, and code: PASS.
-- ChatGPT interface-label cleanup: PASS.
-- Chrome Web Store review for 1.5.0: PENDING.
+- Core ChatGPT export: MANUAL PASS.
+- Search, filters, and navigation: MANUAL PASS.
+- HTML/PDF/portable ZIP: MANUAL PASS.
+- Images and reusable attachments: MANUAL PASS.
+- Local prompt library: MANUAL PASS.
+- Selected text handoff: MANUAL PASS.
+- Cleaned webpage handoff: MANUAL PASS.
+- Image-only screenshot handoff: MANUAL PASS.
+- YouTube transcript handoff: MANUAL PASS.
+- 2.0 local workspace: MANUAL PASS.
+- Final two-menu interface: MANUAL PASS.
+- Automated CI: required before publishing release assets.
+- Chrome Web Store 2.0.0 review: PENDING.
+
+## Documentation
+
+- `README.md` — project overview.
+- `USER_MANUAL_UK.md` — detailed Ukrainian user guide.
+- `PRIVACY.md` — privacy policy.
+- `STORE_LISTING.md` — prepared Chrome Web Store listing text.
+- `CHANGELOG.md` — version history.
 
 ## Support development
 
