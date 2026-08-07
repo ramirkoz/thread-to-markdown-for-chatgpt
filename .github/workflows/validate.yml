@@ -46,6 +46,7 @@ jobs:
           manifest = json.loads((root / 'manifest.json').read_text())
           background = (root / 'background-entry.js').read_text()
           router = (root / 'popup-router.js').read_text()
+          entry_html = (root / 'popup-entry.html').read_text()
           site_html = (root / 'site-tools.html').read_text()
           site_js = (root / 'site-tools.js').read_text()
           chat_html = (root / 'sidepanel.html').read_text()
@@ -53,39 +54,43 @@ jobs:
           bulk_js = (root / 'workspace-bulk-export.js').read_text()
 
           assert manifest['manifest_version'] == 3
+          assert manifest['name'] == 'ChatExtra Toolkit'
           assert manifest['version'] == '2.0.0'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
           assert manifest['optional_host_permissions'] == ['https://chatgpt.com/*']
           assert 'host_permissions' not in manifest
           assert manifest['background']['service_worker'] == 'background-entry.js'
-          assert manifest['action']['default_popup'] == 'sidepanel.html'
+          assert manifest['action']['default_popup'] == 'popup-entry.html'
 
           required = [
               'background.js', 'background-entry.js', 'popup.js', 'popup.css',
-              'sidepanel.html', 'sidepanel.css', 'site-tools.html', 'site-tools.css',
-              'site-tools.js', 'popup-router.js', 'thread-workspace.js', 'thread-workspace.css',
-              'workspace-bulk-export.js', 'html-export.js', 'language-export.js',
-              'pdf-export.js', 'package-export.js', 'print.html', 'print.css', 'print.js',
-              'selected-text-handoff-background.js', 'screenshot-handoff-background.js',
-              'icons/icon16.png', 'icons/icon32.png', 'icons/icon48.png', 'icons/icon128.png'
+              'popup-entry.html', 'popup-router.js', 'sidepanel.html', 'sidepanel.css',
+              'site-tools.html', 'site-tools.css', 'site-tools.js',
+              'thread-workspace.js', 'thread-workspace.css', 'workspace-bulk-export.js',
+              'html-export.js', 'language-export.js', 'pdf-export.js', 'package-export.js',
+              'print.html', 'print.css', 'print.js', 'selected-text-handoff-background.js',
+              'screenshot-handoff-background.js', 'icons/icon16.png', 'icons/icon32.png',
+              'icons/icon48.png', 'icons/icon128.png'
           ]
           for name in required:
               assert (root / name).is_file(), name
 
+          assert 'src="popup-router.js"' in entry_html
           for marker in ('id="message-search"', 'id="prompt-library"', 'id="thread-workspace"', 'id="workspace-save-current"', 'id="workspace-export-selected"', 'id="workspace-backup"', 'id="export"'):
               assert marker in chat_html, marker
+          assert chat_html.index('id="export"') < chat_html.index('id="prompt-library"')
+          assert chat_html.index('id="export"') < chat_html.index('id="thread-workspace"')
           for marker in ('send-selection', 'send-page', 'send-screenshot', 'send-youtube'):
               assert marker in site_html, marker
 
-          assert "importScripts('popup-router.js')" in background
+          assert "importScripts('popup-router.js')" not in background
           assert "importScripts('workspace-bulk-export.js')" in background
           assert "importScripts('selected-text-handoff-background.js')" in background
           assert "importScripts('screenshot-handoff-background.js')" in background
-          assert "importScripts('context-menu-handoff.js')" not in background
-          assert "importScripts('toolbar-sidepanel-fix.js')" not in background
 
-          for marker in ('chrome.action.setPopup', "CHATGPT_POPUP = 'sidepanel.html'", "SITE_POPUP = 'site-tools.html'"):
+          for marker in ("CHATGPT_POPUP = 'sidepanel.html'", "SITE_POPUP = 'site-tools.html'", 'chrome.tabs.query', 'location.replace'):
               assert marker in router, marker
+          assert 'chrome.action.setPopup' not in router
           for marker in ('chrome.permissions.request', 'chrome.scripting.executeScript', 'captureVisibleTab', "type: 'insert-selected-text'", "type: 'insert-screenshot'"):
               assert marker in site_js, marker
           for marker in ('indexedDB.open', 'workspace-bulk-export', 'thread-to-markdown-local-backup', 'prepare-thread', 'folder', 'tags', 'note'):
@@ -96,15 +101,15 @@ jobs:
           print('Extension validation: PASS')
           PY
 
-          rm -f /tmp/thread-to-markdown.zip
-          (cd extension && zip -qr /tmp/thread-to-markdown.zip .)
-          unzip -t /tmp/thread-to-markdown.zip
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'manifest.json'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'sidepanel.html'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'site-tools.html'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'popup-router.js'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'thread-workspace.js'
-          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'workspace-bulk-export.js'
+          rm -f /tmp/chatextra-toolkit.zip
+          (cd extension && zip -qr /tmp/chatextra-toolkit.zip .)
+          unzip -t /tmp/chatextra-toolkit.zip
+          unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'manifest.json'
+          unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'popup-entry.html'
+          unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'sidepanel.html'
+          unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'site-tools.html'
+          unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'thread-workspace.js'
+          unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'workspace-bulk-export.js'
 
       - name: Build development packages
         if: github.event_name == 'push'
@@ -112,13 +117,14 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="$(python -c "import json; print(json.load(open('extension/manifest.json'))['version'])")"
-          ROOT="thread-to-markdown-for-chatgpt-${VERSION}"
+          ROOT="ChatExtra-Toolkit-${VERSION}"
 
           rm -rf dist source-package
           mkdir -p dist "source-package/${ROOT}"
           (cd extension && zip -9 -qr "../dist/${ROOT}-chrome-package.zip" .)
           cp -R extension "source-package/${ROOT}/"
           cp README.md PRIVACY.md CHANGELOG.md RELEASE_NOTES.md STORE_LISTING.md STORE_SUBMISSION_CHECKLIST.md LICENSE "source-package/${ROOT}/"
+          test -f USER_MANUAL_UK.md && cp USER_MANUAL_UK.md "source-package/${ROOT}/"
           (cd source-package && zip -9 -qr "../dist/${ROOT}-source.zip" "${ROOT}")
           (cd dist && sha256sum *.zip > SHA256SUMS.txt)
 
@@ -126,7 +132,7 @@ jobs:
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
-          name: thread-to-markdown-for-chatgpt-development-build
+          name: chatextra-toolkit-development-build
           path: dist/
           if-no-files-found: error
           retention-days: 14
