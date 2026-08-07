@@ -22,6 +22,7 @@ jobs:
           set -euo pipefail
           node --check extension/background.js
           node --check extension/background-entry.js
+          node --check extension/context-menu-handoff.js
           node --check extension/html-export.js
           node --check extension/language-export.js
           node --check extension/pdf-export.js
@@ -44,13 +45,16 @@ jobs:
 
           assert manifest['manifest_version'] == 3
           assert re.fullmatch(r'\d+\.\d+\.\d+', manifest['version'])
-          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads', 'contextMenus', 'sidePanel']
           assert 'host_permissions' not in manifest
           assert manifest['background']['service_worker'] == 'background-entry.js'
+          assert manifest['side_panel']['default_path'] == 'sidepanel.html'
+          assert 'default_popup' not in manifest['action']
 
           required = [
               root / 'background.js',
               root / 'background-entry.js',
+              root / 'context-menu-handoff.js',
               root / 'html-export.js',
               root / 'language-export.js',
               root / 'pdf-export.js',
@@ -66,6 +70,8 @@ jobs:
               root / 'popup.html',
               root / 'popup.css',
               root / 'popup.js',
+              root / 'sidepanel.html',
+              root / 'sidepanel.css',
               root / 'icons/icon16.png',
               root / 'icons/icon32.png',
               root / 'icons/icon48.png',
@@ -76,7 +82,9 @@ jobs:
 
           background_entry = (root / 'background-entry.js').read_text()
           html = (root / 'popup.html').read_text()
+          sidepanel_html = (root / 'sidepanel.html').read_text()
           js = (root / 'popup.js').read_text()
+          context_menu = (root / 'context-menu-handoff.js').read_text()
           html_export = (root / 'html-export.js').read_text()
           language_export = (root / 'language-export.js').read_text()
           pdf_export = (root / 'pdf-export.js').read_text()
@@ -87,8 +95,14 @@ jobs:
           print_css = (root / 'print.css').read_text()
           print_js = (root / 'print.js').read_text()
 
-          assert 'value="html"' in html
-          assert 'value="pdf"' in html
+          assert 'value="html"' in sidepanel_html
+          assert 'value="pdf"' in sidepanel_html
+          assert 'id="message-search"' in sidepanel_html
+          assert 'id="prompt-library"' in sidepanel_html
+          assert 'selected-text-handoff' not in sidepanel_html
+          assert 'webpage-handoff' not in sidepanel_html
+          assert 'screenshot-handoff' not in sidepanel_html
+          assert 'youtube-handoff' not in sidepanel_html
           assert "'html'" in js
           assert "'pdf'" in js
           assert "option.value = 'zip'" in js
@@ -106,6 +120,13 @@ jobs:
           assert "importScripts('attachment-relative-url-fix.js')" in background_entry
           assert "importScripts('attachment-resource-fallback.js')" in background_entry
           assert "importScripts('attachment-activation-fallback.js')" in background_entry
+          assert "importScripts('context-menu-handoff.js')" in background_entry
+          assert 'chrome.contextMenus.create' in context_menu
+          assert 'chrome.sidePanel.setPanelBehavior' in context_menu
+          assert 'chrome.action.disable' in context_menu
+          assert 'extractReadablePageForContextMenu' in context_menu
+          assert 'extractYoutubeTranscriptForContextMenu' in context_menu
+          assert 'captureVisibleTab' in context_menu
           assert "value === 'zip'" in package_export
           assert 'collectPortableAssets' in package_export
           assert 'createStoredZip' in package_export
@@ -133,7 +154,7 @@ jobs:
           assert '.print-guide' in print_css
           assert '.loading,.print-guide{display:none!important}' in print_css
 
-          keys = set(re.findall(r'data-i18n="([^"]+)"', html))
+          keys = set(re.findall(r'data-i18n="([^"]+)"', sidepanel_html))
           keys.update(re.findall(r"getMessage\('([^']+)'", js))
 
           for locale in ('en', 'uk'):
@@ -204,6 +225,8 @@ jobs:
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'package-export.js'
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'attachment-export-fix.js'
           unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'attachment-activation-fallback.js'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'sidepanel.html'
+          unzip -Z1 /tmp/thread-to-markdown.zip | grep -qx 'context-menu-handoff.js'
 
       - name: Build development packages
         if: github.event_name == 'push'
