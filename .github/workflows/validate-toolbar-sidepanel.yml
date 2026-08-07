@@ -1,4 +1,4 @@
-name: Validate toolbar side panel
+name: Validate ChatGPT toolbar popup
 
 on:
   push:
@@ -16,11 +16,10 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Validate explicit toolbar side panel handler
+      - name: Validate ChatGPT toolbar popup
         shell: bash
         run: |
           set -euo pipefail
-          node --check extension/toolbar-sidepanel-fix.js
 
           python - <<'PY'
           import json
@@ -28,22 +27,19 @@ jobs:
 
           root = Path('extension')
           manifest = json.loads((root / 'manifest.json').read_text())
-          handler = (root / 'toolbar-sidepanel-fix.js').read_text()
-          background = (root / 'background-entry.js').read_text()
+          html = (root / 'sidepanel.html').read_text()
+          css = (root / 'sidepanel.css').read_text()
 
           assert manifest['version'] == '1.9.0'
-          assert 'sidePanel' in manifest['permissions']
-          assert manifest['side_panel']['default_path'] == 'sidepanel.html'
-          assert "importScripts('toolbar-sidepanel-fix.js')" in background
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads', 'contextMenus']
+          assert 'sidePanel' not in manifest['permissions']
+          assert 'side_panel' not in manifest
+          assert manifest['action']['default_popup'] == 'sidepanel.html'
+          assert 'id="message-search"' in html
+          assert 'id="prompt-library"' in html
+          assert 'id="export"' in html
+          assert 'width: 620px' in css
+          assert 'min-height: 560px' in css
 
-          for marker in (
-              'chrome.action.onClicked.addListener',
-              'chrome.sidePanel.setOptions',
-              'chrome.sidePanel.open',
-              "path: SIDE_PANEL_PATH",
-              'isChatGptUrl',
-          ):
-              assert marker in handler, marker
-
-          print('Toolbar side panel validation: PASS')
+          print('ChatGPT toolbar popup validation: PASS')
           PY
