@@ -1,0 +1,128 @@
+name: Validate local workspace v2
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate workspace UI and bulk ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/thread-workspace.js
+          node --check extension/workspace-bulk-export.js
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('extension')
+          manifest = json.loads((root / 'manifest.json').read_text())
+          html = (root / 'sidepanel.html').read_text()
+          css = (root / 'thread-workspace.css').read_text()
+          js = (root / 'thread-workspace.js').read_text()
+          bulk = (root / 'workspace-bulk-export.js').read_text()
+          background = (root / 'background-entry.js').read_text()
+
+          assert manifest['version'] == '2.0.0'
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
+          assert 'host_permissions' not in manifest
+
+          for marker in (
+              'id="thread-workspace"', 'id="workspace-folder"', 'id="workspace-tags"',
+              'id="workspace-note"', 'id="workspace-search"', 'id="workspace-folder-filter"',
+              'id="workspace-export-selected"', 'id="workspace-backup"', 'id="workspace-restore"',
+              'src="thread-workspace.js"', 'href="thread-workspace.css"'):
+              assert marker in html, marker
+
+          for marker in ('indexedDB.open', "const STORE = 'threads'", "type: 'prepare-thread'", 'thread-to-markdown-local-backup', 'workspace-bulk-export'):
+              assert marker in js, marker
+          for marker in ('createStoredZip', 'library.json', 'README.txt', 'chats/', 'MAX_ITEMS = 100', 'MAX_TOTAL_BYTES = 12 * 1024 * 1024'):
+              assert marker in bulk, marker
+          for marker in ('.thread-workspace', '.workspace-card', '.workspace-tag', '.workspace-bulk-actions'):
+              assert marker in css, marker
+          assert "importScripts('workspace-bulk-export.js')" in background
+
+          print('Workspace static validation: PASS')
+          PY
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const { TextEncoder, TextDecoder } = require('util');
+
+          let listener = null;
+          let downloadUrl = '';
+          const context = {
+            console,
+            TextEncoder,
+            TextDecoder,
+            Uint8Array,
+            Uint32Array,
+            DataView,
+            Date,
+            atob,
+            btoa,
+            setTimeout,
+            clearTimeout,
+            self: {
+              exportThread: async () => ({}),
+              normalizeFormat: (value) => value,
+              prepareThread: async () => ({})
+            },
+            chrome: {
+              runtime: { onMessage: { addListener(fn) { listener = fn; } } },
+              downloads: { async download(options) { downloadUrl = options.url; return 7; } },
+              action: {
+                setBadgeBackgroundColor: async () => {},
+                setBadgeText: async () => {}
+              },
+              scripting: { executeScript: async () => [] }
+            }
+          };
+          vm.createContext(context);
+          vm.runInContext(fs.readFileSync('extension/package-export.js', 'utf8'), context);
+          vm.runInContext(fs.readFileSync('extension/workspace-bulk-export.js', 'utf8'), context);
+          if (typeof listener !== 'function') throw new Error('Workspace listener was not registered.');
+
+          const response = await new Promise((resolve) => {
+            const keepAlive = listener({
+              type: 'workspace-bulk-export',
+              items: [{
+                id: 'one',
+                title: 'Тестова розмова',
+                url: 'https://chatgpt.com/c/test',
+                folder: 'Проєкти',
+                tags: ['тест'],
+                note: 'note',
+                markdown: '# Test\n\nHello',
+                messageCount: 2,
+                savedAt: '2026-08-07T00:00:00.000Z',
+                updatedAt: '2026-08-07T00:00:00.000Z'
+              }]
+            }, {}, resolve);
+            if (keepAlive !== true) throw new Error('Workspace listener did not keep the channel alive.');
+          });
+          if (!response?.ok || response.count !== 1 || response.downloadId !== 7) {
+            throw new Error(`Unexpected workspace response: ${JSON.stringify(response)}`);
+          }
+          const match = String(downloadUrl).match(/^data:application\/zip;base64,(.+)$/s);
+          if (!match) throw new Error('Workspace ZIP data URL was not created.');
+          fs.writeFileSync('/tmp/workspace-v2.zip', Buffer.from(match[1], 'base64'));
+          NODE
+
+          unzip -t /tmp/workspace-v2.zip
+          unzip -Z1 /tmp/workspace-v2.zip | grep -qx 'library.json'
+          unzip -Z1 /tmp/workspace-v2.zip | grep -qx 'README.txt'
+          unzip -Z1 /tmp/workspace-v2.zip | grep -q '^chats/.*/.*\.md$'
