@@ -75,6 +75,11 @@ jobs:
               'input[type="file"]',
               "new ClipboardEvent('paste'",
               'chrome.tabs.update',
+              'clearComposer',
+              'deleteContentBackward',
+              "setter.call(element, '')",
+              'element.replaceChildren()',
+              'Screenshot mode',
           ):
               assert marker in background_js, marker
 
@@ -84,6 +89,9 @@ jobs:
               'requestSubmit(',
               '.submit(',
               'send-button',
+              "type: 'insert-selected-text'",
+              'extractReadableWebpage',
+              'buildHandoffText',
           ):
               assert forbidden not in background_js, forbidden
 
