@@ -1,4 +1,4 @@
-name: Validate ChatGPT toolbar popup
+name: Validate adaptive toolbar popup
 
 on:
   push:
@@ -16,10 +16,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Validate ChatGPT toolbar popup
+      - name: Validate adaptive toolbar popup
         shell: bash
         run: |
           set -euo pipefail
+          node --check extension/popup-router.js
+          node --check extension/site-tools.js
 
           python - <<'PY'
           import json
@@ -27,19 +29,36 @@ jobs:
 
           root = Path('extension')
           manifest = json.loads((root / 'manifest.json').read_text())
-          html = (root / 'sidepanel.html').read_text()
-          css = (root / 'sidepanel.css').read_text()
+          chat_html = (root / 'sidepanel.html').read_text()
+          site_html = (root / 'site-tools.html').read_text()
+          site_css = (root / 'site-tools.css').read_text()
+          router = (root / 'popup-router.js').read_text()
+          site_js = (root / 'site-tools.js').read_text()
+          background = (root / 'background-entry.js').read_text()
 
           assert manifest['version'] == '1.9.0'
-          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads', 'contextMenus']
-          assert 'sidePanel' not in manifest['permissions']
-          assert 'side_panel' not in manifest
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
           assert manifest['action']['default_popup'] == 'sidepanel.html'
-          assert 'id="message-search"' in html
-          assert 'id="prompt-library"' in html
-          assert 'id="export"' in html
-          assert 'width: 620px' in css
-          assert 'min-height: 560px' in css
+          assert 'contextMenus' not in manifest['permissions']
+          assert 'sidePanel' not in manifest['permissions']
 
-          print('ChatGPT toolbar popup validation: PASS')
+          assert 'id="message-search"' in chat_html
+          assert 'id="prompt-library"' in chat_html
+          assert 'id="export"' in chat_html
+
+          for marker in ('send-selection', 'send-page', 'send-screenshot', 'send-youtube'):
+              assert marker in site_html, marker
+          assert 'width:420px' in site_css
+
+          for marker in ('chrome.action.setPopup', "CHATGPT_POPUP = 'sidepanel.html'", "SITE_POPUP = 'site-tools.html'", 'chrome.tabs.onActivated', 'chrome.tabs.onUpdated'):
+              assert marker in router, marker
+
+          for marker in ('chrome.permissions.request', 'chrome.scripting.executeScript', 'captureVisibleTab', "type: 'insert-selected-text'", "type: 'insert-screenshot'", 'readYoutubeTranscript'):
+              assert marker in site_js, marker
+
+          assert "importScripts('popup-router.js')" in background
+          assert "importScripts('context-menu-handoff.js')" not in background
+          assert "importScripts('toolbar-sidepanel-fix.js')" not in background
+
+          print('Adaptive toolbar popup validation: PASS')
           PY
