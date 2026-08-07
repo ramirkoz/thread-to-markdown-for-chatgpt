@@ -90,3 +90,4 @@ importScripts('attachment-filename-preservation-fix.js');
 importScripts('attachment-link-path-fix.js');
 importScripts('selected-text-handoff-background.js');
 importScripts('screenshot-handoff-background.js');
+importScripts('context-menu-handoff.js');
