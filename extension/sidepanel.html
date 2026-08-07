@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thread to Markdown</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body class="sidepanel-mode">
+  <main class="panel">
+    <header>
+      <img src="icons/icon48.png" alt="" width="40" height="40">
+      <div>
+        <h1 data-i18n="popupHeading">Thread to Markdown</h1>
+        <p data-i18n="popupTagline">Choose messages and export them locally.</p>
+      </div>
+    </header>
+
+    <section class="privacy" aria-label="Privacy notice">
+      <strong data-i18n="privacyTitle">Private by design</strong>
+      <span data-i18n="privacyText">The page is processed only on your device. Nothing is sent to the developer.</span>
+    </section>
+
+    <section id="selection" class="selection" hidden>
+      <div class="selection-head">
+        <div>
+          <strong id="thread-title"></strong>
+          <span id="selection-count"></span>
+        </div>
+        <div class="selection-actions">
+          <button id="select-all" class="text-button" type="button" data-i18n="selectAllButton">Select all</button>
+          <button id="clear-all" class="text-button" type="button" data-i18n="clearAllButton">Clear</button>
+        </div>
+      </div>
+
+      <div class="navigation-tools">
+        <label class="search-field" for="message-search">
+          <span data-i18n="searchMessagesLabel">Search messages</span>
+          <input id="message-search" type="search" autocomplete="off" data-i18n-placeholder="searchMessagesPlaceholder" placeholder="Search by text or role">
+        </label>
+        <div id="role-filter" class="role-filter" role="group">
+          <button class="role-filter-button active" type="button" data-role-filter="all" data-i18n="roleFilterAll" aria-pressed="true">All</button>
+          <button class="role-filter-button" type="button" data-role-filter="user" data-i18n="roleFilterUser" aria-pressed="false">User</button>
+          <button class="role-filter-button" type="button" data-role-filter="assistant" data-i18n="roleFilterAssistant" aria-pressed="false">ChatGPT</button>
+        </div>
+        <div class="toc-summary">
+          <strong data-i18n="tocHeading">Thread contents</strong>
+          <span id="search-count"></span>
+        </div>
+        <div class="result-navigation" role="group">
+          <button id="previous-search-result" class="result-nav-button" type="button" disabled>←</button>
+          <span id="search-position" aria-live="polite">0 of 0</span>
+          <button id="next-search-result" class="result-nav-button" type="button" disabled>→</button>
+        </div>
+      </div>
+
+      <div id="messages" class="messages" role="list"></div>
+
+      <div class="output-row">
+        <label for="format" data-i18n="formatLabel">Format</label>
+        <select id="format">
+          <option value="markdown" data-i18n="formatMarkdown">Markdown (.md)</option>
+          <option value="html" data-i18n="formatHtml">HTML (.html)</option>
+          <option value="pdf" data-i18n="formatPdf">PDF (guided print)</option>
+          <option value="text" data-i18n="formatText">Plain text (.txt)</option>
+          <option value="json" data-i18n="formatJson">JSON (.json)</option>
+        </select>
+      </div>
+    </section>
+
+    <details id="prompt-library" class="prompt-library">
+      <summary>
+        <span data-i18n="promptLibraryHeading">Local prompt library</span>
+        <span id="prompt-count">0</span>
+      </summary>
+      <div class="prompt-library-body">
+        <p class="prompt-library-note" data-i18n="promptLibraryPrivacy">Prompts are stored only in this browser profile.</p>
+        <label class="prompt-search-field" for="prompt-search">
+          <span data-i18n="promptSearchLabel">Search saved prompts</span>
+          <input id="prompt-search" type="search" autocomplete="off" data-i18n-placeholder="promptSearchPlaceholder" placeholder="Search by name or text">
+        </label>
+        <p id="prompt-empty" class="prompt-empty" data-i18n="promptEmpty">No prompts saved yet.</p>
+        <div id="prompt-list" class="prompt-list" role="list"></div>
+        <button id="prompt-add" class="prompt-add" type="button" data-i18n="promptAdd">Add prompt</button>
+        <form id="prompt-form" class="prompt-form" hidden>
+          <label for="prompt-title">
+            <span data-i18n="promptTitleLabel">Prompt name</span>
+            <input id="prompt-title" type="text" maxlength="120" autocomplete="off" required data-i18n-placeholder="promptTitlePlaceholder" placeholder="For example: Weekly report">
+          </label>
+          <label for="prompt-content">
+            <span data-i18n="promptContentLabel">Prompt text</span>
+            <textarea id="prompt-content" maxlength="12000" rows="7" required data-i18n-placeholder="promptContentPlaceholder" placeholder="Enter the reusable instruction"></textarea>
+          </label>
+          <div class="prompt-form-actions">
+            <button id="prompt-cancel" class="prompt-cancel" type="button" data-i18n="promptCancel">Cancel</button>
+            <button id="prompt-save" class="prompt-save" type="submit" data-i18n="promptSave">Save prompt</button>
+          </div>
+        </form>
+      </div>
+    </details>
+
+    <div class="action-row">
+      <button id="copy" class="secondary" type="button" data-i18n="copySelectedButton" disabled>Copy selected</button>
+      <button id="export" class="primary" type="button" data-i18n="exportButton" disabled>Export selected</button>
+    </div>
+    <p id="status" role="status" aria-live="polite" data-i18n="loadingStatus">Reading the open conversation…</p>
+
+    <footer>
+      <span data-i18n="unofficialNotice">Unofficial extension. Not affiliated with OpenAI.</span>
+    </footer>
+  </main>
+  <script src="popup.js"></script>
+  <script src="navigation-highlight-fix.js"></script>
+  <script src="role-filter.js"></script>
+  <script src="search-navigation.js"></script>
+  <script src="prompt-library.js"></script>
+</body>
+</html>
