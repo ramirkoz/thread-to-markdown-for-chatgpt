@@ -1,24 +1,33 @@
 # Changelog
 
-## 1.9.0 — Unreleased
+## 2.0.0 — Unreleased
 
-- Started the 1.9.0 development cycle without submitting an intermediate Chrome Web Store update.
-- Added a popup action that reads text explicitly selected by the user on the active page.
-- Added insertion of selected text into a new ChatGPT chat without automatically sending the message.
+- Started the 2.0.0 development cycle without submitting an intermediate Chrome Web Store update.
+- Added a local conversation workspace backed by extension-owned IndexedDB storage.
+- Added explicit saving and updating of the current ChatGPT conversation as a Markdown snapshot with source URL, title, message count, and timestamps.
+- Added user-defined folders, tags, and local notes for saved conversations.
+- Added local search across saved titles, folders, tags, and notes plus folder filtering.
+- Added reopening of saved conversations in ChatGPT from the workspace.
+- Added bulk selection and ZIP export of up to 100 saved conversation snapshots, organized under folder paths with `library.json` metadata and a README.
+- Added a 12 MB stored-Markdown limit per bulk-export operation to keep browser memory and downloads predictable.
+- Added JSON backup and restore for the complete local workspace plus the existing local prompt library.
+- Added confirmation before destructive restore or bulk deletion.
+- Added a maximum of 250 saved workspace records.
+- Added dedicated automated validation for workspace UI, IndexedDB integration, background ZIP generation, ZIP structure, and CRC integrity.
+- Kept the existing `activeTab`, `scripting`, and `downloads` permissions with no new broad host permission.
+- Manual browser validation of the 2.0 workspace is pending.
+
+## 1.9.0 — 2026-08-07
+
+- Added a context-aware toolbar interface: ChatGPT pages open the conversation/export tools while other websites open a separate site-tools popup.
+- Added selected-text handoff into a new ChatGPT chat without automatic sending.
+- Added cleaned webpage handoff with title, source URL, and main text.
+- Added visible-area screenshot attachment without automatic sending and enforced image-only composer cleanup.
+- Added YouTube transcript handoff and fallbacks for visible transcript rows, caption data, and transcript UI.
 - Added a narrowly scoped optional permission for `https://chatgpt.com/*`, requested only when a handoff action is used.
-- Added support for selections inside normal page content, text inputs, and textareas.
-- Added a 30,000-character selection limit, load timeout handling, and clear permission or composer errors.
-- Added English and Ukrainian localization for the selected-text handoff.
-- Manual browser validation passed for selected-text insertion into a new ChatGPT chat without automatic sending.
-- Added a second handoff action that extracts the current page title, source URL, and cleaned main text.
-- Added local removal of navigation, forms, sidebars, advertisements, scripts, and other common page noise before insertion.
-- Added automatic page-text shortening with a visible note when the 30,000-character handoff limit would be exceeded.
-- Added English and Ukrainian localization and automated validation for webpage handoff.
-- Manual browser validation passed for webpage handoff into a new ChatGPT chat without automatic sending.
-- Added a third handoff action that captures the currently visible browser area as a local JPEG screenshot.
-- Added attachment of the captured screenshot to a new ChatGPT chat without automatically sending the message.
-- Added file-input and paste fallbacks for ChatGPT image attachment plus screenshot size validation.
-- Added English and Ukrainian localization and automated validation for screenshot handoff.
+- Added 30,000-character handoff limits, load timeout handling, and clear permission or composer errors.
+- Kept the ChatGPT export/search/navigation/prompt interface separate from website handoff tools.
+- Manual browser validation passed for selected text, webpage content, image-only screenshots, context-aware toolbar switching, and YouTube transcript insertion without automatic sending.
 
 ## 1.8.0 — 2026-08-06
 
