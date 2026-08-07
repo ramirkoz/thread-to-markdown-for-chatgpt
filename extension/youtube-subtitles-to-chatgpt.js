@@ -136,23 +136,112 @@
 
   async function extractYoutubeTranscript(preferredLanguage, maxLength) {
     const normalize = (value) => String(value || '').replace(/\s+/g, ' ').trim();
-    const playerResponse = window.ytInitialPlayerResponse || (() => {
+    const preferred = String(preferredLanguage || '').toLowerCase();
+    const limit = Math.max(2000, Number(maxLength) || 26000);
+
+    const currentVideoId = (() => {
       try {
-        const raw = window.ytplayer?.config?.args?.player_response;
-        return typeof raw === 'string' ? JSON.parse(raw) : raw;
+        const url = new URL(location.href);
+        if (url.pathname === '/watch') return String(url.searchParams.get('v') || '');
+        if (url.pathname.startsWith('/shorts/')) return String(url.pathname.split('/')[2] || '');
       } catch {
-        return null;
+        return '';
       }
+      return '';
     })();
 
-    const tracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-    if (!Array.isArray(tracks) || tracks.length === 0) {
-      return { text: '' };
-    }
+    const isCurrentPlayerResponse = (response) => {
+      if (!response || typeof response !== 'object') return false;
+      const responseVideoId = String(response?.videoDetails?.videoId || '');
+      return !currentVideoId || !responseVideoId || responseVideoId === currentVideoId;
+    };
 
-    const preferred = String(preferredLanguage || '').toLowerCase();
+    const findBalancedJson = (source, marker) => {
+      const markerIndex = source.indexOf(marker);
+      if (markerIndex < 0) return null;
+      const start = source.indexOf('{', markerIndex + marker.length);
+      if (start < 0) return null;
+
+      let depth = 0;
+      let inString = false;
+      let escaped = false;
+      for (let index = start; index < source.length; index += 1) {
+        const char = source[index];
+        if (inString) {
+          if (escaped) escaped = false;
+          else if (char === '\\') escaped = true;
+          else if (char === '"') inString = false;
+          continue;
+        }
+        if (char === '"') {
+          inString = true;
+          continue;
+        }
+        if (char === '{') depth += 1;
+        else if (char === '}') {
+          depth -= 1;
+          if (depth === 0) return source.slice(start, index + 1);
+        }
+      }
+      return null;
+    };
+
+    const parsePlayerResponseFromHtml = (html) => {
+      const markers = [
+        'ytInitialPlayerResponse =',
+        'var ytInitialPlayerResponse =',
+        'window["ytInitialPlayerResponse"] =',
+        'window.ytInitialPlayerResponse ='
+      ];
+      for (const marker of markers) {
+        try {
+          const json = findBalancedJson(html, marker);
+          if (!json) continue;
+          const parsed = JSON.parse(json);
+          if (isCurrentPlayerResponse(parsed)) return parsed;
+        } catch {
+          // Try the next representation.
+        }
+      }
+      return null;
+    };
+
+    const getPlayerResponse = async () => {
+      const directCandidates = [];
+      if (window.ytInitialPlayerResponse) directCandidates.push(window.ytInitialPlayerResponse);
+      try {
+        const raw = window.ytplayer?.config?.args?.raw_player_response ||
+          window.ytplayer?.config?.args?.player_response;
+        if (raw) directCandidates.push(typeof raw === 'string' ? JSON.parse(raw) : raw);
+      } catch {
+        // Continue with fresh watch-page extraction.
+      }
+
+      for (const candidate of directCandidates) {
+        const tracks = candidate?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+        if (isCurrentPlayerResponse(candidate) && Array.isArray(tracks) && tracks.length) {
+          return candidate;
+        }
+      }
+
+      try {
+        const freshResponse = await fetch(location.href, {
+          credentials: 'include',
+          cache: 'no-store'
+        });
+        if (freshResponse.ok) {
+          const html = await freshResponse.text();
+          const parsed = parsePlayerResponseFromHtml(html);
+          if (parsed) return parsed;
+        }
+      } catch {
+        // The timed-text fallback below can still work.
+      }
+      return directCandidates.find(isCurrentPlayerResponse) || null;
+    };
+
     const scoreTrack = (track) => {
-      const code = String(track?.languageCode || '').toLowerCase();
+      const code = String(track?.languageCode || track?.langCode || '').toLowerCase();
       let score = track?.kind === 'asr' ? 0 : 30;
       if (code === preferred) score += 100;
       else if (preferred && code.startsWith(`${preferred}-`)) score += 80;
@@ -160,25 +249,85 @@
       return score;
     };
 
-    const track = [...tracks].sort((a, b) => scoreTrack(b) - scoreTrack(a))[0];
-    if (!track?.baseUrl) return { text: '' };
+    const parseJson3 = (payload) => {
+      const lines = [];
+      for (const event of Array.isArray(payload?.events) ? payload.events : []) {
+        const segments = Array.isArray(event?.segs) ? event.segs : [];
+        const line = normalize(segments.map((segment) => segment?.utf8 || '').join(''));
+        if (!line || line === '\n') continue;
+        if (lines[lines.length - 1] !== line) lines.push(line);
+      }
+      return lines.join('\n').trim();
+    };
 
-    const captionUrl = new URL(track.baseUrl);
-    captionUrl.searchParams.set('fmt', 'json3');
-    const response = await fetch(captionUrl.toString(), { credentials: 'include' });
-    if (!response.ok) return { text: '' };
+    const fetchTrackJson3 = async (track) => {
+      if (!track?.baseUrl) return '';
+      try {
+        const captionUrl = new URL(track.baseUrl, location.origin);
+        captionUrl.searchParams.set('fmt', 'json3');
+        const response = await fetch(captionUrl.toString(), {
+          credentials: 'include',
+          cache: 'no-store'
+        });
+        if (!response.ok) return '';
+        const payload = await response.json();
+        return parseJson3(payload);
+      } catch {
+        return '';
+      }
+    };
 
-    const payload = await response.json();
-    const lines = [];
-    for (const event of Array.isArray(payload?.events) ? payload.events : []) {
-      const segments = Array.isArray(event?.segs) ? event.segs : [];
-      const line = normalize(segments.map((segment) => segment?.utf8 || '').join(''));
-      if (!line || line === '\n') continue;
-      if (lines[lines.length - 1] !== line) lines.push(line);
+    const playerResponse = await getPlayerResponse();
+    let tracks = playerResponse?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
+    let track = Array.isArray(tracks) && tracks.length
+      ? [...tracks].sort((a, b) => scoreTrack(b) - scoreTrack(a))[0]
+      : null;
+    let transcript = await fetchTrackJson3(track);
+
+    if (!transcript && currentVideoId) {
+      try {
+        const listUrl = new URL('/api/timedtext', location.origin);
+        listUrl.searchParams.set('type', 'list');
+        listUrl.searchParams.set('v', currentVideoId);
+        const listResponse = await fetch(listUrl.toString(), {
+          credentials: 'include',
+          cache: 'no-store'
+        });
+        if (listResponse.ok) {
+          const xml = await listResponse.text();
+          const documentXml = new DOMParser().parseFromString(xml, 'text/xml');
+          const listedTracks = [...documentXml.querySelectorAll('track')].map((node) => ({
+            languageCode: node.getAttribute('lang_code') || '',
+            languageName: node.getAttribute('lang_translated') || node.getAttribute('name') || '',
+            name: node.getAttribute('name') || '',
+            kind: node.getAttribute('kind') || '',
+            isTranslatable: true
+          }));
+          const fallbackTrack = listedTracks.sort((a, b) => scoreTrack(b) - scoreTrack(a))[0];
+          if (fallbackTrack?.languageCode) {
+            const captionUrl = new URL('/api/timedtext', location.origin);
+            captionUrl.searchParams.set('v', currentVideoId);
+            captionUrl.searchParams.set('lang', fallbackTrack.languageCode);
+            captionUrl.searchParams.set('fmt', 'json3');
+            if (fallbackTrack.name) captionUrl.searchParams.set('name', fallbackTrack.name);
+            if (fallbackTrack.kind) captionUrl.searchParams.set('kind', fallbackTrack.kind);
+            const captionResponse = await fetch(captionUrl.toString(), {
+              credentials: 'include',
+              cache: 'no-store'
+            });
+            if (captionResponse.ok) {
+              transcript = parseJson3(await captionResponse.json());
+              track = fallbackTrack;
+            }
+          }
+        }
+      } catch {
+        // Return an empty result below if both caption sources fail.
+      }
     }
 
-    let transcript = lines.join('\n').trim();
-    const limit = Math.max(2000, Number(maxLength) || 26000);
+    if (!transcript) return { text: '' };
+
     let truncated = false;
     if (transcript.length > limit) {
       const cut = transcript.slice(0, limit);
@@ -187,17 +336,18 @@
       truncated = true;
     }
 
-    const trackName = track?.name?.simpleText ||
-      (Array.isArray(track?.name?.runs) ? track.name.runs.map((run) => run?.text || '').join('') : '');
+    const trackName = track?.languageName || track?.name?.simpleText ||
+      (Array.isArray(track?.name?.runs) ? track.name.runs.map((run) => run?.text || '').join('') : '') ||
+      track?.name || '';
     const title = playerResponse?.videoDetails?.title ||
       document.querySelector('h1 yt-formatted-string')?.textContent ||
       document.title.replace(/\s*-\s*YouTube\s*$/i, '');
 
     return {
       title: normalize(title),
-      languageCode: String(track.languageCode || ''),
+      languageCode: String(track?.languageCode || track?.langCode || ''),
       languageName: normalize(trackName),
-      automatic: track.kind === 'asr',
+      automatic: track?.kind === 'asr',
       text: transcript,
       truncated
     };
