@@ -63,6 +63,12 @@ jobs:
               "new DOMParser()",
               "captionUrl.searchParams.set('fmt', 'json3')",
               "credentials: 'include'",
+              'transcriptFromDom',
+              'clickTranscriptUi',
+              'ytd-transcript-segment-renderer .segment-text',
+              'engagement-panel-searchable-transcript',
+              'show\\s+transcript',
+              "source: 'youtube-transcript-panel'",
               "type: 'insert-selected-text'",
           ):
               assert marker in js, marker
