@@ -1,0 +1,9 @@
+html, body { width: 100%; min-width: 0; min-height: 100%; }
+body.sidepanel-mode { min-width: 0; }
+.sidepanel-mode .panel { width: 100%; max-width: none; padding: 16px; }
+.sidepanel-mode .messages { max-height: 44vh; }
+.sidepanel-mode .prompt-library-body { max-height: 42vh; overflow: auto; }
+@media (min-width: 620px) {
+  .sidepanel-mode .panel { padding: 20px; }
+  .sidepanel-mode .messages { max-height: 52vh; }
+}
