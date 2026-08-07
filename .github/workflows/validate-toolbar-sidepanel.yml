@@ -1,0 +1,49 @@
+name: Validate toolbar side panel
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate explicit toolbar side panel handler
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/toolbar-sidepanel-fix.js
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('extension')
+          manifest = json.loads((root / 'manifest.json').read_text())
+          handler = (root / 'toolbar-sidepanel-fix.js').read_text()
+          background = (root / 'background-entry.js').read_text()
+
+          assert manifest['version'] == '1.9.0'
+          assert 'sidePanel' in manifest['permissions']
+          assert manifest['side_panel']['default_path'] == 'sidepanel.html'
+          assert "importScripts('toolbar-sidepanel-fix.js')" in background
+
+          for marker in (
+              'chrome.action.onClicked.addListener',
+              'chrome.sidePanel.setOptions',
+              'chrome.sidePanel.open',
+              "path: SIDE_PANEL_PATH",
+              'isChatGptUrl',
+          ):
+              assert marker in handler, marker
+
+          print('Toolbar side panel validation: PASS')
+          PY
