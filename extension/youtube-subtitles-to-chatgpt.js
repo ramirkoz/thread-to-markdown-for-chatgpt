@@ -135,6 +135,7 @@
   }
 
   async function extractYoutubeTranscript(preferredLanguage, maxLength) {
+    const wait = (milliseconds) => new Promise((resolve) => window.setTimeout(resolve, milliseconds));
     const normalize = (value) => String(value || '').replace(/\s+/g, ' ').trim();
     const preferred = String(preferredLanguage || '').toLowerCase();
     const limit = Math.max(2000, Number(maxLength) || 26000);
@@ -150,6 +151,103 @@
       return '';
     })();
 
+    const clipTranscript = (rawText) => {
+      let transcript = String(rawText || '').trim();
+      let truncated = false;
+      if (transcript.length > limit) {
+        const cut = transcript.slice(0, limit);
+        const boundary = Math.max(cut.lastIndexOf('\n'), cut.lastIndexOf(' '));
+        transcript = cut.slice(0, boundary > limit * 0.8 ? boundary : limit).trim();
+        truncated = true;
+      }
+      return { transcript, truncated };
+    };
+
+    const pageTitle = () => normalize(
+      document.querySelector('h1 yt-formatted-string')?.textContent ||
+      document.querySelector('h1.ytd-watch-metadata')?.textContent ||
+      document.title.replace(/\s*-\s*YouTube\s*$/i, '')
+    );
+
+    const transcriptFromDom = () => {
+      const selectors = [
+        'ytd-transcript-segment-renderer .segment-text',
+        'ytd-transcript-segment-renderer yt-formatted-string.segment-text',
+        '[target-id="engagement-panel-searchable-transcript"] .segment-text',
+        'ytd-engagement-panel-section-list-renderer[target-id="engagement-panel-searchable-transcript"] .segment-text',
+        'yt-formatted-string.segment-text'
+      ];
+      const nodes = [];
+      for (const selector of selectors) {
+        for (const node of document.querySelectorAll(selector)) {
+          if (!nodes.includes(node)) nodes.push(node);
+        }
+      }
+      const lines = [];
+      for (const node of nodes) {
+        const line = normalize(node.textContent);
+        if (!line) continue;
+        if (lines[lines.length - 1] !== line) lines.push(line);
+      }
+      return lines.join('\n').trim();
+    };
+
+    const visible = (element) => {
+      if (!(element instanceof HTMLElement)) return false;
+      const rect = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+    };
+
+    const clickTranscriptUi = async () => {
+      const existing = transcriptFromDom();
+      if (existing) return existing;
+
+      const expandSelectors = [
+        '#description-inline-expander #expand',
+        'ytd-text-inline-expander #expand',
+        'tp-yt-paper-button#expand',
+        'button[aria-label*="more" i]'
+      ];
+      for (const selector of expandSelectors) {
+        const expand = [...document.querySelectorAll(selector)].find(visible);
+        if (expand) {
+          try {
+            expand.click();
+            await wait(250);
+          } catch {
+            // Continue to transcript controls.
+          }
+          break;
+        }
+      }
+
+      const transcriptPattern = /(show\s+transcript|transcript|показати\s+текст\s+відео|текст\s+відео|стенограм|розшифров|показать\s+расшифровку)/iu;
+      const candidates = [
+        ...document.querySelectorAll('button, [role="button"], yt-button-shape button, tp-yt-paper-button')
+      ].filter((element) => {
+        if (!visible(element)) return false;
+        const label = normalize(`${element.textContent || ''} ${element.getAttribute('aria-label') || ''}`);
+        return transcriptPattern.test(label);
+      });
+
+      if (candidates[0]) {
+        try {
+          candidates[0].click();
+        } catch {
+          return '';
+        }
+      }
+
+      const deadline = Date.now() + 5000;
+      while (Date.now() < deadline) {
+        const transcript = transcriptFromDom();
+        if (transcript) return transcript;
+        await wait(200);
+      }
+      return '';
+    };
+
     const isCurrentPlayerResponse = (response) => {
       if (!response || typeof response !== 'object') return false;
       const responseVideoId = String(response?.videoDetails?.videoId || '');
@@ -161,7 +259,6 @@
       if (markerIndex < 0) return null;
       const start = source.indexOf('{', markerIndex + marker.length);
       if (start < 0) return null;
-
       let depth = 0;
       let inString = false;
       let escaped = false;
@@ -219,23 +316,17 @@
 
       for (const candidate of directCandidates) {
         const tracks = candidate?.captions?.playerCaptionsTracklistRenderer?.captionTracks;
-        if (isCurrentPlayerResponse(candidate) && Array.isArray(tracks) && tracks.length) {
-          return candidate;
-        }
+        if (isCurrentPlayerResponse(candidate) && Array.isArray(tracks) && tracks.length) return candidate;
       }
 
       try {
-        const freshResponse = await fetch(location.href, {
-          credentials: 'include',
-          cache: 'no-store'
-        });
+        const freshResponse = await fetch(location.href, { credentials: 'include', cache: 'no-store' });
         if (freshResponse.ok) {
-          const html = await freshResponse.text();
-          const parsed = parsePlayerResponseFromHtml(html);
+          const parsed = parsePlayerResponseFromHtml(await freshResponse.text());
           if (parsed) return parsed;
         }
       } catch {
-        // The timed-text fallback below can still work.
+        // DOM and timed-text fallbacks remain available.
       }
       return directCandidates.find(isCurrentPlayerResponse) || null;
     };
@@ -265,13 +356,9 @@
       try {
         const captionUrl = new URL(track.baseUrl, location.origin);
         captionUrl.searchParams.set('fmt', 'json3');
-        const response = await fetch(captionUrl.toString(), {
-          credentials: 'include',
-          cache: 'no-store'
-        });
+        const response = await fetch(captionUrl.toString(), { credentials: 'include', cache: 'no-store' });
         if (!response.ok) return '';
-        const payload = await response.json();
-        return parseJson3(payload);
+        return parseJson3(await response.json());
       } catch {
         return '';
       }
@@ -289,10 +376,7 @@
         const listUrl = new URL('/api/timedtext', location.origin);
         listUrl.searchParams.set('type', 'list');
         listUrl.searchParams.set('v', currentVideoId);
-        const listResponse = await fetch(listUrl.toString(), {
-          credentials: 'include',
-          cache: 'no-store'
-        });
+        const listResponse = await fetch(listUrl.toString(), { credentials: 'include', cache: 'no-store' });
         if (listResponse.ok) {
           const xml = await listResponse.text();
           const documentXml = new DOMParser().parseFromString(xml, 'text/xml');
@@ -311,10 +395,7 @@
             captionUrl.searchParams.set('fmt', 'json3');
             if (fallbackTrack.name) captionUrl.searchParams.set('name', fallbackTrack.name);
             if (fallbackTrack.kind) captionUrl.searchParams.set('kind', fallbackTrack.kind);
-            const captionResponse = await fetch(captionUrl.toString(), {
-              credentials: 'include',
-              cache: 'no-store'
-            });
+            const captionResponse = await fetch(captionUrl.toString(), { credentials: 'include', cache: 'no-store' });
             if (captionResponse.ok) {
               transcript = parseJson3(await captionResponse.json());
               track = fallbackTrack;
@@ -322,34 +403,41 @@
           }
         }
       } catch {
-        // Return an empty result below if both caption sources fail.
+        // DOM fallback below remains available.
+      }
+    }
+
+    if (!transcript) {
+      transcript = transcriptFromDom() || await clickTranscriptUi();
+      if (transcript) {
+        const clipped = clipTranscript(transcript);
+        return {
+          title: pageTitle(),
+          languageCode: '',
+          languageName: '',
+          automatic: false,
+          text: clipped.transcript,
+          truncated: clipped.truncated,
+          source: 'youtube-transcript-panel'
+        };
       }
     }
 
     if (!transcript) return { text: '' };
 
-    let truncated = false;
-    if (transcript.length > limit) {
-      const cut = transcript.slice(0, limit);
-      const boundary = Math.max(cut.lastIndexOf('\n'), cut.lastIndexOf(' '));
-      transcript = cut.slice(0, boundary > limit * 0.8 ? boundary : limit).trim();
-      truncated = true;
-    }
-
+    const clipped = clipTranscript(transcript);
     const trackName = track?.languageName || track?.name?.simpleText ||
       (Array.isArray(track?.name?.runs) ? track.name.runs.map((run) => run?.text || '').join('') : '') ||
       track?.name || '';
-    const title = playerResponse?.videoDetails?.title ||
-      document.querySelector('h1 yt-formatted-string')?.textContent ||
-      document.title.replace(/\s*-\s*YouTube\s*$/i, '');
 
     return {
-      title: normalize(title),
+      title: normalize(playerResponse?.videoDetails?.title || pageTitle()),
       languageCode: String(track?.languageCode || track?.langCode || ''),
       languageName: normalize(trackName),
       automatic: track?.kind === 'asr',
-      text: transcript,
-      truncated
+      text: clipped.transcript,
+      truncated: clipped.truncated,
+      source: 'youtube-caption-track'
     };
   }
 })();
