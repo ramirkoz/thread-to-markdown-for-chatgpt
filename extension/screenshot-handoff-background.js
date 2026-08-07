@@ -147,6 +147,14 @@ async function attachScreenshotToChatGpt(dataUrl, filename) {
     element.dispatchEvent(new Event('change', { bubbles: true }));
   };
 
+  const composerText = (element) => {
+    if (!element) return '';
+    if (element instanceof HTMLTextAreaElement || element instanceof HTMLInputElement) {
+      return String(element.value || '').trim();
+    }
+    return String(element.innerText || element.textContent || '').trim();
+  };
+
   const clearComposer = (element) => {
     if (!element) return;
     element.focus();
@@ -174,7 +182,7 @@ async function attachScreenshotToChatGpt(dataUrl, filename) {
       } catch {
         cleared = false;
       }
-      if (!cleared || String(element.textContent || '').trim()) {
+      if (!cleared || composerText(element)) {
         element.replaceChildren();
       }
       selection?.removeAllRanges();
@@ -182,8 +190,26 @@ async function attachScreenshotToChatGpt(dataUrl, filename) {
     }
   };
 
-  // A newly opened ChatGPT tab can restore an older unsent draft. Screenshot mode
-  // must be image-only, so clear any restored composer text before attaching.
+  const settleImageOnlyComposer = async () => {
+    // ChatGPT may restore an older draft or populate text shortly after an
+    // attachment appears. Keep the attachment, but repeatedly clear only the
+    // editable message field until the UI has settled.
+    const deadline = Date.now() + 2600;
+    while (Date.now() < deadline) {
+      const currentComposer = findComposer();
+      if (currentComposer && composerText(currentComposer)) {
+        clearComposer(currentComposer);
+      }
+      await wait(180);
+    }
+
+    const finalComposer = findComposer();
+    if (finalComposer && composerText(finalComposer)) {
+      clearComposer(finalComposer);
+      await wait(120);
+    }
+  };
+
   const composerDeadline = Date.now() + 8000;
   let composer = null;
   while (Date.now() < composerDeadline) {
@@ -222,7 +248,8 @@ async function attachScreenshotToChatGpt(dataUrl, filename) {
       input.dispatchEvent(new Event('input', { bubbles: true }));
       input.dispatchEvent(new Event('change', { bubbles: true }));
       if (await waitForAttachment(before)) {
-        return { attached: true, method: 'file-input' };
+        await settleImageOnlyComposer();
+        return { attached: true, method: 'file-input', imageOnly: true };
       }
     } catch {
       // Try the composer paste fallback below.
@@ -234,8 +261,6 @@ async function attachScreenshotToChatGpt(dataUrl, filename) {
     composer = findComposer();
 
     if (composer) {
-      // Clear once more before the paste fallback in case ChatGPT restored draft
-      // content while the attachment controls were being initialized.
       clearComposer(composer);
       const before = attachmentCount();
       const transfer = new DataTransfer();
@@ -254,7 +279,8 @@ async function attachScreenshotToChatGpt(dataUrl, filename) {
       composer.focus();
       composer.dispatchEvent(pasteEvent);
       if (await waitForAttachment(before)) {
-        return { attached: true, method: 'paste' };
+        await settleImageOnlyComposer();
+        return { attached: true, method: 'paste', imageOnly: true };
       }
     }
 
