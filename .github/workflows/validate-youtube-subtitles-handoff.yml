@@ -1,0 +1,81 @@
+name: Validate YouTube subtitle handoff
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate YouTube subtitle handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check extension/youtube-subtitles-to-chatgpt.js
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path('extension')
+          manifest = json.loads((root / 'manifest.json').read_text())
+          html = (root / 'popup.html').read_text()
+          css = (root / 'youtube-handoff.css').read_text()
+          js = (root / 'youtube-subtitles-to-chatgpt.js').read_text()
+
+          assert manifest['version'] == '1.9.0'
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
+          assert 'host_permissions' not in manifest
+          assert manifest['optional_host_permissions'] == ['https://chatgpt.com/*']
+
+          for marker in (
+              'href="youtube-handoff.css"',
+              'id="youtube-handoff"',
+              'id="send-youtube-subtitles-to-chatgpt"',
+              'data-youtube-i18n="heading"',
+              'src="youtube-subtitles-to-chatgpt.js"',
+          ):
+              assert marker in html, marker
+
+          for marker in (
+              "const CHATGPT_ORIGIN = 'https://chatgpt.com/*'",
+              'MAX_HANDOFF_LENGTH = 30000',
+              'MAX_TRANSCRIPT_LENGTH = 26000',
+              'chrome.tabs.query',
+              'chrome.scripting.executeScript',
+              "world: 'MAIN'",
+              'extractYoutubeTranscript',
+              'ytInitialPlayerResponse',
+              'captionTracks',
+              "captionUrl.searchParams.set('fmt', 'json3')",
+              "fetch(captionUrl.toString(), { credentials: 'include' })",
+              "type: 'insert-selected-text'",
+          ):
+              assert marker in js, marker
+
+          for forbidden in (
+              'requestSubmit(',
+              '.submit(',
+              'send-button',
+              'host_permissions',
+          ):
+              assert forbidden not in js, forbidden
+
+          for marker in (
+              '.youtube-handoff',
+              '.send-youtube-button',
+              '.send-youtube-button:hover',
+          ):
+              assert marker in css, marker
+
+          print('YouTube subtitle handoff validation: PASS')
+          PY
