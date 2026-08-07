@@ -1,0 +1,7 @@
+.screenshot-handoff { margin: 0 0 14px; padding: 12px; border: 1px solid #fed7aa; border-radius: 10px; background: #fff7ed; }
+.screenshot-handoff strong { display: block; color: #9a3412; font-size: 12px; }
+.screenshot-handoff p { margin: 4px 0 10px; color: #c2410c; font-size: 10px; line-height: 1.45; }
+.send-screenshot-button { width: 100%; border: 0; border-radius: 8px; padding: 9px 11px; background: #c2410c; color: white; font-size: 11px; font-weight: 800; }
+.send-screenshot-button:hover:not(:disabled) { background: #9a3412; }
+.send-screenshot-button:focus-visible { outline: 3px solid #fdba74; outline-offset: 2px; }
+.send-screenshot-button:disabled { opacity: .55; cursor: not-allowed; }
