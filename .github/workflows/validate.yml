@@ -34,6 +34,7 @@ jobs:
             extension/language-export.js \
             extension/pdf-export.js \
             extension/package-export.js \
+            extension/zip-safe-hotfix.js \
             extension/print.js; do
             node --check "$file"
           done
@@ -45,6 +46,7 @@ jobs:
           root = Path('extension')
           manifest = json.loads((root / 'manifest.json').read_text())
           background = (root / 'background-entry.js').read_text()
+          safe_zip = (root / 'zip-safe-hotfix.js').read_text()
           router = (root / 'popup-router.js').read_text()
           entry_html = (root / 'popup-entry.html').read_text()
           site_html = (root / 'site-tools.html').read_text()
@@ -55,7 +57,7 @@ jobs:
 
           assert manifest['manifest_version'] == 3
           assert manifest['name'] == 'ChatExtra Toolkit'
-          assert manifest['version'] == '2.0.0'
+          assert manifest['version'] == '2.0.1'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
           assert manifest['optional_host_permissions'] == ['https://chatgpt.com/*']
           assert 'host_permissions' not in manifest
@@ -68,9 +70,9 @@ jobs:
               'site-tools.html', 'site-tools.css', 'site-tools.js',
               'thread-workspace.js', 'thread-workspace.css', 'workspace-bulk-export.js',
               'html-export.js', 'language-export.js', 'pdf-export.js', 'package-export.js',
-              'print.html', 'print.css', 'print.js', 'selected-text-handoff-background.js',
-              'screenshot-handoff-background.js', 'icons/icon16.png', 'icons/icon32.png',
-              'icons/icon48.png', 'icons/icon128.png'
+              'zip-safe-hotfix.js', 'print.html', 'print.css', 'print.js',
+              'selected-text-handoff-background.js', 'screenshot-handoff-background.js',
+              'icons/icon16.png', 'icons/icon32.png', 'icons/icon48.png', 'icons/icon128.png'
           ]
           for name in required:
               assert (root / name).is_file(), name
@@ -87,6 +89,20 @@ jobs:
           assert "importScripts('workspace-bulk-export.js')" in background
           assert "importScripts('selected-text-handoff-background.js')" in background
           assert "importScripts('screenshot-handoff-background.js')" in background
+          assert "importScripts('zip-safe-hotfix.js')" in background
+          assert background.index("importScripts('zip-safe-hotfix.js')") > background.index("importScripts('attachment-activation-fallback.js')")
+          assert background.index("importScripts('zip-safe-hotfix.js')") > background.index("importScripts('attachment-main-world-fallback.js')")
+          assert background.index("importScripts('zip-safe-hotfix.js')") > background.index("importScripts('attachment-link-path-fix.js')")
+
+          forbidden_safe_zip = (
+              'target.click(', '.click()', 'window.open', 'chrome.tabs.create',
+              'chrome.tabs.update', 'collectActivatedAttachmentCards',
+              'collectMainWorldAttachmentCards'
+          )
+          for marker in forbidden_safe_zip:
+              assert marker not in safe_zip, marker
+          for marker in ('collectPortableAssets', 'collectFileCardAttachments', 'collectRelativeAttachmentCards', 'buildPortablePackage', 'safeMode: true'):
+              assert marker in safe_zip, marker
 
           for marker in ("CHATGPT_POPUP = 'sidepanel.html'", "SITE_POPUP = 'site-tools.html'", 'chrome.tabs.query', 'location.replace'):
               assert marker in router, marker
@@ -110,6 +126,7 @@ jobs:
           unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'site-tools.html'
           unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'thread-workspace.js'
           unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'workspace-bulk-export.js'
+          unzip -Z1 /tmp/chatextra-toolkit.zip | grep -qx 'zip-safe-hotfix.js'
 
       - name: Build development packages
         if: github.event_name == 'push'
