@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ChatExtra Toolkit",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Export and organize ChatGPT conversations locally, save prompts, and send selected webpage content into ChatGPT.",
   "default_locale": "en",
   "permissions": [
