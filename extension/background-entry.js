@@ -89,5 +89,6 @@ importScripts('attachment-output-card-geometric-bridge.js');
 importScripts('attachment-output-index-bridge-cleanup.js');
 importScripts('attachment-filename-preservation-fix.js');
 importScripts('attachment-link-path-fix.js');
+importScripts('zip-safe-hotfix.js');
 importScripts('selected-text-handoff-background.js');
 importScripts('screenshot-handoff-background.js');
