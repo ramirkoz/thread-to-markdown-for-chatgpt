@@ -1,4 +1,4 @@
-name: Publish ChatExtra Toolkit v2.0.0
+name: Publish ChatExtra Toolkit v2.0.1
 
 on:
   workflow_run:
@@ -30,17 +30,22 @@ jobs:
           import json
           from pathlib import Path
           manifest = json.loads(Path('extension/manifest.json').read_text())
+          background = Path('extension/background-entry.js').read_text()
+          safe_zip = Path('extension/zip-safe-hotfix.js').read_text()
           assert manifest['name'] == 'ChatExtra Toolkit'
-          assert manifest['version'] == '2.0.0'
+          assert manifest['version'] == '2.0.1'
           assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads']
           assert manifest['action']['default_popup'] == 'popup-entry.html'
+          assert "importScripts('zip-safe-hotfix.js')" in background
+          for marker in ('target.click(', '.click()', 'window.open', 'chrome.tabs.create', 'collectActivatedAttachmentCards', 'collectMainWorldAttachmentCards'):
+              assert marker not in safe_zip, marker
           PY
 
       - name: Build release assets
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="2.0.0"
+          VERSION="2.0.1"
           ROOT="ChatExtra-Toolkit-${VERSION}"
           rm -rf release-dist source-package drive-bundle
           mkdir -p release-dist "source-package/${ROOT}" "drive-bundle/${ROOT}"
@@ -63,11 +68,12 @@ jobs:
           unzip -t "release-dist/${ROOT}-chrome-package.zip"
           unzip -t "release-dist/${ROOT}-source.zip"
           unzip -t "release-dist/${ROOT}-Google-Drive-bundle.zip"
+          unzip -Z1 "release-dist/${ROOT}-chrome-package.zip" | grep -qx 'zip-safe-hotfix.js'
 
       - name: Create GitHub release if missing
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: v2.0.0
+          TAG: v2.0.1
         shell: bash
         run: |
           set -euo pipefail
@@ -76,18 +82,18 @@ jobs:
             exit 0
           fi
           gh release create "$TAG" \
-            release-dist/ChatExtra-Toolkit-2.0.0-chrome-package.zip \
-            release-dist/ChatExtra-Toolkit-2.0.0-source.zip \
-            release-dist/ChatExtra-Toolkit-2.0.0-Google-Drive-bundle.zip \
+            release-dist/ChatExtra-Toolkit-2.0.1-chrome-package.zip \
+            release-dist/ChatExtra-Toolkit-2.0.1-source.zip \
+            release-dist/ChatExtra-Toolkit-2.0.1-Google-Drive-bundle.zip \
             release-dist/SHA256SUMS.txt \
             --target "${{ github.event.workflow_run.head_sha }}" \
-            --title "ChatExtra Toolkit 2.0.0" \
+            --title "ChatExtra Toolkit 2.0.1" \
             --notes-file RELEASE_NOTES.md
 
       - name: Upload release synchronization bundle
         uses: actions/upload-artifact@v4
         with:
-          name: ChatExtra-Toolkit-2.0.0-release-sync
+          name: ChatExtra-Toolkit-2.0.1-release-sync
           path: release-dist/
           if-no-files-found: error
           retention-days: 30
