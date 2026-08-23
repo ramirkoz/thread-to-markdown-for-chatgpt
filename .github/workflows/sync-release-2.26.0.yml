@@ -1,0 +1,210 @@
+name: Sync and release GPT Project & Memory Tools 2.26.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/sync-release-2.26.0.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  sync-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download tested 2.26.0 artifacts from Google Drive
+        shell: bash
+        run: |
+          set -euo pipefail
+          fetch_drive() {
+            local id="$1"
+            local out="$2"
+            curl -L --fail --retry 5 --retry-delay 2 \
+              "https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t" \
+              -o "$out"
+          }
+
+          fetch_drive '1i2nBKa4LJ8iQnArrvXTzu4-yR99ESlAI' '/tmp/GPT-Project-Memory-Tools-2.26.0-chrome-package.zip'
+          fetch_drive '1ywGEwCaWjdF2gFITtq7HKpHSoNEUnfqs' '/tmp/GPT-Project-Memory-Tools-2.26.0-source.zip'
+          fetch_drive '18pKWGy-0CvcYyQLxJTXQwNzT2wst9W3l' '/tmp/GPT-Project-Memory-Tools-2.26.0-Google-Drive-bundle.zip'
+          fetch_drive '1TWT5cJMaIXcJQooI7oh6mfukXd3CSOpc' '/tmp/SHA256SUMS.txt'
+          fetch_drive '1ZmL1QHuSNAQj1QOUoecZpAoOmSPNQW7f' '/tmp/GPT-Project-Memory-Tools-2.26.0-LOCAL-TEST-REPORT.md'
+
+          echo '1a74df96d2ac99ae871eabfebfddd9d683db5629c4297e186f40247fa73dc599  /tmp/GPT-Project-Memory-Tools-2.26.0-chrome-package.zip' | sha256sum -c -
+          echo '77aaa6c6483b0f9b83e5a332d43b78983c8584c350d81c14dd91cad2653b27bc  /tmp/GPT-Project-Memory-Tools-2.26.0-source.zip' | sha256sum -c -
+          echo 'a836cc3af1e7a6f7fc40314c22d127ca25816af07f4bb50c2f262124e49e2820  /tmp/GPT-Project-Memory-Tools-2.26.0-Google-Drive-bundle.zip' | sha256sum -c -
+          echo '50a5765dae56b9b6e2e051f99c93134d62ee09594c963ec185d5596248d504c8  /tmp/GPT-Project-Memory-Tools-2.26.0-LOCAL-TEST-REPORT.md' | sha256sum -c -
+
+      - name: Synchronize repository source from tested package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/source-226 /tmp/chrome-226
+          mkdir -p /tmp/source-226 /tmp/chrome-226
+          unzip -q '/tmp/GPT-Project-Memory-Tools-2.26.0-source.zip' -d /tmp/source-226
+          unzip -q '/tmp/GPT-Project-Memory-Tools-2.26.0-chrome-package.zip' -d /tmp/chrome-226
+
+          SRC='/tmp/source-226/GPT-Project-Memory-Tools-2.26.0/extension'
+          test -f "$SRC/manifest.json"
+          rm -rf extension
+          cp -a "$SRC" extension
+
+          diff -qr extension /tmp/chrome-226
+          cp extension/CHANGELOG.md CHANGELOG.md
+          mkdir -p docs
+          cp '/tmp/GPT-Project-Memory-Tools-2.26.0-LOCAL-TEST-REPORT.md' 'docs/GPT-Project-Memory-Tools-2.26.0-LOCAL-TEST-REPORT.md'
+
+          cat > README.md <<'EOF'
+          # GPT Project & Memory Tools
+
+          Privacy-first Chrome extension for local ChatGPT Project memory and resilient conversation export.
+
+          ## Current release
+
+          **2.26.0** — final tested release candidate for the existing Chrome Web Store item.
+
+          Chrome Web Store extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
+
+          ## Main functions
+
+          - Automatic local memory for ChatGPT Projects.
+          - Local synchronization of project conversations into extension-owned browser storage.
+          - Context retrieval from earlier project chats for a new project conversation.
+          - Markdown, HTML, PDF, ZIP, TXT and JSON conversation export.
+          - Mixed attachment capture for images, office documents, generated files and video.
+          - Video attachments up to 512 MB per file.
+          - Full archive asset budget up to 640 MB.
+          - Filename alias coalescing and same-message content deduplication.
+          - Local prompt library, saved-chat workspace, search, folders, tags, notes and backups.
+          - No developer telemetry or remote executable code.
+
+          ## 2.26.0 test status
+
+          - Local automated validation: PASS.
+          - Real control export: **9 files added / 0 skipped**.
+          - Large MP4 capture: PASS.
+          - ZIP integrity: PASS.
+
+          ## Install from source
+
+          1. Download the release source ZIP or clone the repository.
+          2. Open `chrome://extensions`.
+          3. Enable Developer mode.
+          4. Choose **Load unpacked**.
+          5. Select the `extension` folder.
+
+          ## Privacy
+
+          Project memory and saved workspace data are stored locally in the browser profile. Exported archives are created locally. The extension does not operate a developer server for user content.
+
+          ## License
+
+          GPL-2.0-or-later.
+          EOF
+
+          cat > RELEASE_NOTES.md <<'EOF'
+          # GPT Project & Memory Tools 2.26.0
+
+          Stable control release for local ChatGPT Project memory and mixed-attachment export.
+
+          ## Final fixes
+
+          - Video attachments can use up to 512 MB per file while non-video files retain the 48 MB limit.
+          - Full ZIP asset budget increased to 640 MB.
+          - Video transfer budget increased to 90 seconds with a 60-second active request window.
+          - Preserved exact `file_id` matching, signed media replay, XLSX duplicate-name handling, generated-file capture, filename alias coalescing and PDF/content deduplication.
+          - Preserved progress UI, cancellation and fail-open ZIP behavior.
+
+          ## Test status
+
+          - LOCAL PASS.
+          - JavaScript validation PASS.
+          - ZIP integrity PASS.
+          - Real control export PASS: **9 added / 0 skipped**.
+          - `Dniprorudne Pryvitannya.mp4` captured successfully as one file.
+
+          ## Chrome Web Store
+
+          Existing extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`.
+
+          Version 2.26.0 is prepared as the next update for the existing listing.
+          EOF
+
+      - name: Validate synchronized source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path('extension/manifest.json').read_text())
+          assert manifest['manifest_version'] == 3
+          assert manifest['name'] == 'GPT Project & Memory Tools'
+          assert manifest['version'] == '2.26.0'
+          assert manifest['permissions'] == ['activeTab', 'scripting', 'downloads', 'storage']
+          assert manifest['optional_host_permissions'] == ['https://chatgpt.com/*', 'https://chat.openai.com/*']
+          for path in [
+              'extension/package-export-complete.js',
+              'extension/project-memory-agent.js',
+              'extension/project-memory-background.js',
+              'extension/manifest.json',
+              'extension/icons/icon128.png'
+          ]:
+              assert Path(path).is_file(), path
+          print('2.26.0 repository validation: PASS')
+          PY
+
+          while IFS= read -r -d '' file; do
+            node --check "$file"
+          done < <(find extension -type f -name '*.js' -print0)
+
+          unzip -t '/tmp/GPT-Project-Memory-Tools-2.26.0-chrome-package.zip'
+          unzip -t '/tmp/GPT-Project-Memory-Tools-2.26.0-source.zip'
+          unzip -t '/tmp/GPT-Project-Memory-Tools-2.26.0-Google-Drive-bundle.zip'
+
+      - name: Commit synchronized source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A extension CHANGELOG.md README.md RELEASE_NOTES.md docs/GPT-Project-Memory-Tools-2.26.0-LOCAL-TEST-REPORT.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'release: synchronize GPT Project & Memory Tools 2.26.0'
+            git push origin HEAD:main
+          fi
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG='v2.26.0'
+          TITLE='GPT Project & Memory Tools 2.26.0'
+          TARGET_SHA="$(git rev-parse HEAD)"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$TITLE" --notes-file RELEASE_NOTES.md --latest
+          else
+            gh release create "$TAG" \
+              --target "$TARGET_SHA" \
+              --title "$TITLE" \
+              --notes-file RELEASE_NOTES.md \
+              --latest
+          fi
+
+          gh release upload "$TAG" \
+            '/tmp/GPT-Project-Memory-Tools-2.26.0-chrome-package.zip' \
+            '/tmp/GPT-Project-Memory-Tools-2.26.0-source.zip' \
+            '/tmp/GPT-Project-Memory-Tools-2.26.0-Google-Drive-bundle.zip' \
+            '/tmp/SHA256SUMS.txt' \
+            '/tmp/GPT-Project-Memory-Tools-2.26.0-LOCAL-TEST-REPORT.md' \
+            --clobber
