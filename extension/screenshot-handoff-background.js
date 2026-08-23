@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleScreenshotHandoff(message.dataUrl, message.filename)
     .then((result) => sendResponse({ ok: true, ...result }))
     .catch((error) => {
-      console.error('Thread to Markdown: screenshot handoff failed.', error);
+      console.error('GPT Project & Memory Tools: screenshot handoff failed.', error);
       sendResponse({ ok: false, error: String(error?.message || error) });
     });
 

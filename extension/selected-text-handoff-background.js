@@ -6,7 +6,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   handleSelectedTextHandoff(message.text)
     .then((result) => sendResponse({ ok: true, ...result }))
     .catch((error) => {
-      console.error('Thread to Markdown: selected-text handoff failed.', error);
+      console.error('GPT Project & Memory Tools: selected-text handoff failed.', error);
       sendResponse({ ok: false, error: String(error?.message || error) });
     });
 

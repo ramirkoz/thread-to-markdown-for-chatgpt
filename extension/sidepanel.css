@@ -1,15 +1,2 @@
-html, body {
-  width: 620px;
-  min-width: 620px;
-  max-width: 620px;
-  min-height: 560px;
-  margin: 0;
-}
-body.sidepanel-mode { min-width: 620px; }
-.sidepanel-mode .panel {
-  width: 620px;
-  max-width: 620px;
-  padding: 18px;
-}
-.sidepanel-mode .messages { max-height: 300px; }
-.sidepanel-mode .prompt-library-body { max-height: 280px; overflow: auto; }
+html,body{width:560px;min-width:560px;max-width:560px;min-height:520px;margin:0}body.sidepanel-mode{min-width:560px}.sidepanel-mode .panel{width:560px;max-width:560px;padding:14px}.sidepanel-mode .messages{max-height:280px}.sidepanel-mode .prompt-library-body{max-height:240px;overflow:auto}
+.sidepanel-mode .sidepanel-export-progress{position:sticky;bottom:8px;z-index:30;box-shadow:0 8px 24px rgba(15,23,42,.16)}

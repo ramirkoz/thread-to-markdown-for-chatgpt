@@ -120,7 +120,7 @@
       });
       return runs?.[0]?.result || null;
     } catch (error) {
-      console.error('Thread to Markdown: YouTube subtitles could not be read.', error);
+      console.error('GPT Project & Memory Tools: YouTube subtitles could not be read.', error);
       throw new Error(text.unavailable);
     }
   }

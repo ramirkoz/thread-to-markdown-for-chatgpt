@@ -22,7 +22,7 @@
 
   chrome.action.onClicked.addListener((tab) => {
     void openChatGptSidePanel(tab).catch((error) => {
-      console.error('Thread to Markdown: toolbar side panel could not be opened.', error);
+      console.error('GPT Project & Memory Tools: toolbar side panel could not be opened.', error);
     });
   });
 })();

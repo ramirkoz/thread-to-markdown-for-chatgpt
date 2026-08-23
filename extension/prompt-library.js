@@ -49,7 +49,7 @@
         .filter((prompt) => prompt.title && prompt.content)
         .slice(0, MAX_PROMPTS);
     } catch (error) {
-      console.warn('Thread to Markdown: prompt library could not be read.', error);
+      console.warn('GPT Project & Memory Tools: prompt library could not be read.', error);
       return [];
     }
   }
@@ -59,7 +59,7 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(prompts));
       return true;
     } catch (error) {
-      console.error('Thread to Markdown: prompt library could not be saved.', error);
+      console.error('GPT Project & Memory Tools: prompt library could not be saved.', error);
       showStatus(localized('promptStorageError') || 'The prompt library could not be saved.', 'error');
       return false;
     }

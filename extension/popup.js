@@ -12,10 +12,20 @@ const selectAllButton = document.getElementById('select-all');
 const clearAllButton = document.getElementById('clear-all');
 const searchInput = document.getElementById('message-search');
 const searchCountNode = document.getElementById('search-count');
+const exportProgressNode = document.getElementById('export-progress');
+const exportProgressBar = document.getElementById('export-progress-bar');
+const exportProgressStage = document.getElementById('export-progress-stage');
+const exportProgressPercent = document.getElementById('export-progress-percent');
+const exportProgressDetail = document.getElementById('export-progress-detail');
+const exportProgressTime = document.getElementById('export-progress-time');
+const cancelExportButton = document.getElementById('cancel-export');
 
 let activeTabId = null;
 let messages = [];
 let busy = false;
+let activeZipExportId = null;
+let exportStartedAt = 0;
+let exportTimer = null;
 
 ensureZipOption();
 localizeDocument();
@@ -25,6 +35,8 @@ formatSelect.addEventListener('change', updateSelectionState);
 selectAllButton.addEventListener('click', () => setAllSelected(true));
 clearAllButton.addEventListener('click', () => setAllSelected(false));
 searchInput.addEventListener('input', applyMessageFilter);
+cancelExportButton?.addEventListener('click', cancelActiveZipExport);
+chrome.runtime.onMessage.addListener(handleZipProgressMessage);
 searchInput.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && searchInput.value) {
     searchInput.value = '';
@@ -38,7 +50,7 @@ function ensureZipOption() {
   const option = document.createElement('option');
   option.value = 'zip';
   option.dataset.i18n = 'formatZip';
-  option.textContent = 'Portable package (.zip)';
+  option.textContent = 'Full archive package (.zip)';
   const textOption = formatSelect.querySelector('option[value="text"]');
   formatSelect.insertBefore(option, textOption || null);
 }
@@ -301,6 +313,69 @@ function setBusy(value) {
   refreshControls();
 }
 
+function localizedProgressStage(stage) {
+  const key = {
+    preparing: 'zipProgressPreparing', scanning: 'zipProgressScanning', metadata: 'zipProgressMetadata',
+    files: 'zipProgressFiles', recovering: 'zipProgressRecovering', building: 'zipProgressBuilding', saving: 'zipProgressSaving', cancelled: 'zipProgressCancelled'
+  }[stage] || 'zipProgressPreparing';
+  return chrome.i18n.getMessage(key) || 'Preparing archive…';
+}
+
+function startZipProgress(exportId) {
+  activeZipExportId = exportId || null;
+  exportStartedAt = Date.now();
+  if (exportProgressNode) exportProgressNode.hidden = false;
+  if (cancelExportButton) { cancelExportButton.disabled = false; cancelExportButton.textContent = chrome.i18n.getMessage('zipCancelButton') || 'Cancel export'; }
+  updateZipProgress({ stage: 'preparing', percent: 2, current: 0, total: 0, included: 0, skipped: 0 });
+  clearInterval(exportTimer);
+  exportTimer = setInterval(updateExportElapsed, 1000);
+}
+
+function finishZipProgress() {
+  clearInterval(exportTimer); exportTimer = null;
+  if (cancelExportButton) cancelExportButton.disabled = true;
+  setTimeout(() => { if (exportProgressNode) exportProgressNode.hidden = true; }, 1800);
+  activeZipExportId = null;
+}
+
+function updateExportElapsed() {
+  if (!exportStartedAt || !exportProgressTime) return;
+  const sec = Math.max(0, Math.floor((Date.now() - exportStartedAt) / 1000));
+  exportProgressTime.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+}
+
+function updateZipProgress(progress = {}) {
+  if (!exportProgressNode) return;
+  exportProgressNode.hidden = false;
+  const percent = Math.max(0, Math.min(100, Number(progress.percent || 0)));
+  exportProgressBar.value = percent;
+  exportProgressPercent.textContent = `${Math.round(percent)}%`;
+  exportProgressStage.textContent = localizedProgressStage(progress.stage);
+  if (progress.stage === 'files') {
+    exportProgressDetail.textContent = formatMessage('zipProgressFilesDetail', [progress.current || 0, progress.total || 0, progress.included || 0, progress.skipped || 0]) ||
+      `Files ${progress.current || 0}/${progress.total || 0} · saved ${progress.included || 0} · missing ${progress.skipped || 0}`;
+    if (progress.filename) exportProgressStage.textContent = `${localizedProgressStage('files')} ${progress.filename}`;
+  } else {
+    exportProgressDetail.textContent = progress.detail || '';
+  }
+  updateExportElapsed();
+}
+
+function handleZipProgressMessage(message) {
+  if (message?.type !== 'zip-export-progress') return false;
+  if (activeZipExportId && message.exportId && message.exportId !== activeZipExportId) return false;
+  if (!activeZipExportId && message.exportId) activeZipExportId = message.exportId;
+  updateZipProgress(message);
+  return false;
+}
+
+async function cancelActiveZipExport() {
+  if (!activeZipExportId || !activeTabId) return;
+  cancelExportButton.disabled = true;
+  cancelExportButton.textContent = chrome.i18n.getMessage('zipCancelRequested') || 'Stopping after active files finish…';
+  try { await chrome.runtime.sendMessage({ type:'cancel-zip-export', tabId:activeTabId, exportId:activeZipExportId }); } catch (_) {}
+}
+
 async function exportSelectedMessages() {
   const indices = selectedIndices();
   if (!activeTabId || !indices.length) {
@@ -310,13 +385,17 @@ async function exportSelectedMessages() {
 
   setStatus(chrome.i18n.getMessage('workingStatus') || 'Exporting…');
   setBusy(true);
+  const isZip = selectedFormat() === 'zip';
+  const exportId = isZip ? (crypto.randomUUID?.() || `zip-${Date.now()}-${Math.random().toString(16).slice(2)}`) : null;
+  if (isZip) startZipProgress(exportId);
 
   try {
     const response = await chrome.runtime.sendMessage({
       type: 'export-thread',
       tabId: activeTabId,
       selectedIndices: indices,
-      format: selectedFormat()
+      format: selectedFormat(),
+      exportId
     });
     if (!response?.ok) throw new Error(response?.error || 'Export failed.');
 
@@ -329,15 +408,16 @@ async function exportSelectedMessages() {
     } else if (response.format === 'zip') {
       setStatus(
         formatMessage('zipSuccessStatus', [response.filename, response.includedAssets || 0, response.skippedAssets || 0]) ||
-        `Saved: ${response.filename}`,
+        `Saved: ${response.filename} · ${response.includedAssets || 0}/${response.detectedAssets || response.includedAssets || 0} files included · ${response.skippedAssets || 0} missing`,
         'success'
       );
     } else {
-      setStatus(formatMessage('successStatus', [response.filename]) || `Saved: ${response.filename}`, 'success');
+      setStatus(formatMessage('successStatus', [response.filename]) || `Saved: ${response.filename} · ${response.includedAssets || 0}/${response.detectedAssets || response.includedAssets || 0} files included · ${response.skippedAssets || 0} missing`, 'success');
     }
   } catch (error) {
     setStatus(String(error?.message || error), 'error');
   } finally {
+    if (isZip) finishZipProgress();
     setBusy(false);
   }
 }

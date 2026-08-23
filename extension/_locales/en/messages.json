@@ -1,15 +1,15 @@
 {
   "extensionName": {
-    "message": "Thread to Markdown for ChatGPT"
+    "message": "GPT Project & Memory Tools"
   },
   "extensionDescription": {
-    "message": "Search, navigate, select, and export ChatGPT messages, save local prompts, and send selected text, the current webpage, or a screenshot into ChatGPT."
+    "message": "Complete ChatGPT ZIP archives, local project Workspace, full-text search, and automated private project memory without adding Project Sources."
   },
   "actionTitle": {
-    "message": "Export ChatGPT thread"
+    "message": "Open GPT Project & Memory Tools"
   },
   "popupHeading": {
-    "message": "Thread to Markdown"
+    "message": "GPT Project & Memory Tools"
   },
   "popupTagline": {
     "message": "Choose messages and export them locally."
@@ -279,7 +279,7 @@
     "message": "PDF (guided print)"
   },
   "formatZip": {
-    "message": "Portable package (.zip)"
+    "message": "Full archive package (.zip)"
   },
   "formatText": {
     "message": "Plain text (.txt)"
@@ -312,7 +312,7 @@
     "message": "PDF preparation page opened. Use its button, then turn off Headers and footers in More settings."
   },
   "zipSuccessStatus": {
-    "message": "Saved $1. Included files: $2; skipped files: $3."
+    "message": "Saved $1. Included files: $2. Missing/skipped: $3."
   },
   "clipboardError": {
     "message": "The selected messages could not be copied."
@@ -349,5 +349,38 @@
   },
   "unofficialNotice": {
     "message": "Unofficial extension. Not affiliated with OpenAI."
+  },
+  "zipProgressPreparing": {
+    "message": "Preparing archive…"
+  },
+  "zipProgressScanning": {
+    "message": "Scanning attachments…"
+  },
+  "zipProgressMetadata": {
+    "message": "Resolving file metadata…"
+  },
+  "zipProgressFiles": {
+    "message": "Downloading attachments…"
+  },
+  "zipProgressBuilding": {
+    "message": "Building ZIP…"
+  },
+  "zipProgressSaving": {
+    "message": "Saving ZIP…"
+  },
+  "zipProgressCancelled": {
+    "message": "Export cancelled. Building partial ZIP…"
+  },
+  "zipCancelButton": {
+    "message": "Cancel export"
+  },
+  "zipCancelRequested": {
+    "message": "Stopping after active files finish…"
+  },
+  "zipProgressFilesDetail": {
+    "message": "Files $1/$2 · saved $3 · missing $4"
+  },
+  "zipProgressRecovering": {
+    "message": "Recovering after attachment worker error…"
   }
 }

@@ -1,15 +1,15 @@
 {
   "extensionName": {
-    "message": "Гілка ChatGPT у Markdown"
+    "message": "GPT Project & Memory Tools"
   },
   "extensionDescription": {
-    "message": "Шукає, відкриває, вибирає та експортує повідомлення ChatGPT, зберігає локальні промпти й передає виділений текст, вебсторінку або скриншот у ChatGPT."
+    "message": "Повні ZIP-архіви ChatGPT, локальний Workspace проєктів, повнотекстовий пошук та автоматична приватна пам’ять проєкту без додавання в Sources."
   },
   "actionTitle": {
-    "message": "Експортувати гілку ChatGPT"
+    "message": "Відкрити GPT Project & Memory Tools"
   },
   "popupHeading": {
-    "message": "Гілка у Markdown"
+    "message": "GPT Project & Memory Tools"
   },
   "popupTagline": {
     "message": "Виберіть повідомлення та експортуйте їх локально."
@@ -279,7 +279,7 @@
     "message": "PDF (чистий друк)"
   },
   "formatZip": {
-    "message": "Переносний пакет (.zip)"
+    "message": "Повний архів (.zip)"
   },
   "formatText": {
     "message": "Звичайний текст (.txt)"
@@ -312,7 +312,7 @@
     "message": "Відкрито підготовку PDF. Натисніть кнопку на сторінці та вимкніть «Колонтитули» в додаткових налаштуваннях."
   },
   "zipSuccessStatus": {
-    "message": "Збережено $1. Додано файлів: $2; пропущено файлів: $3."
+    "message": "Збережено $1. Додано файлів: $2. Відсутні/пропущені: $3."
   },
   "clipboardError": {
     "message": "Не вдалося скопіювати вибрані повідомлення."
@@ -349,5 +349,38 @@
   },
   "unofficialNotice": {
     "message": "Неофіційне розширення. Не пов’язане з OpenAI."
+  },
+  "zipProgressPreparing": {
+    "message": "Підготовка архіву…"
+  },
+  "zipProgressScanning": {
+    "message": "Пошук вкладень…"
+  },
+  "zipProgressMetadata": {
+    "message": "Уточнення даних файлів…"
+  },
+  "zipProgressFiles": {
+    "message": "Завантаження вкладень…"
+  },
+  "zipProgressBuilding": {
+    "message": "Створення ZIP…"
+  },
+  "zipProgressSaving": {
+    "message": "Збереження ZIP…"
+  },
+  "zipProgressCancelled": {
+    "message": "Експорт скасовано. Створюємо частковий ZIP…"
+  },
+  "zipCancelButton": {
+    "message": "Скасувати експорт"
+  },
+  "zipCancelRequested": {
+    "message": "Зупиняємо після активних файлів…"
+  },
+  "zipProgressFilesDetail": {
+    "message": "Файли $1/$2 · збережено $3 · відсутні $4"
+  },
+  "zipProgressRecovering": {
+    "message": "Відновлення після помилки файлового модуля…"
   }
 }

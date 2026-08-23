@@ -1,31 +1,25 @@
-# ChatExtra Toolkit 2.0.1
+# GPT Project & Memory Tools 2.26.0
 
-Urgent ZIP export safety hotfix.
+Stable control release for local ChatGPT Project memory and mixed-attachment export.
 
-## Fixed
+## Final fixes
 
-- ZIP package export no longer activates ChatGPT attachment cards with synthetic clicks.
-- ZIP package export no longer calls or proxies `window.open` while trying to resolve attachments.
-- ZIP package export no longer opens extra tabs or triggers browser download UI for individual files.
-- Attachment collection now uses only already exposed reusable URLs and local `fetch`-based capture.
-- If ChatGPT does not expose reusable bytes for an attachment, that asset is safely marked as skipped instead of being activated.
-- The final ZIP exporter is loaded after all legacy attachment fallback layers so the safe behavior wins deterministically.
+- Video attachments can use up to 512 MB per file while non-video files retain the 48 MB limit.
+- Full ZIP asset budget increased to 640 MB.
+- Video transfer budget increased to 90 seconds with a 60-second active request window.
+- Preserved exact `file_id` matching, signed media replay, XLSX duplicate-name handling, generated-file capture, filename alias coalescing and PDF/content deduplication.
+- Preserved progress UI, cancellation and fail-open ZIP behavior.
 
-## Unchanged
+## Test status
 
-- Conversation Markdown, HTML, text and JSON remain included in portable ZIP packages.
-- Reusable images and attachments can still be embedded when their bytes are directly available.
-- Existing `activeTab`, `scripting`, and `downloads` permissions are unchanged.
-- No new host permissions, telemetry, analytics, or remote executable code were added.
-
-## Safety contract
-
-During ZIP export the final 2.0.1 code path must not use synthetic `.click()`, `window.open`, `chrome.tabs.create`, `chrome.tabs.update`, the attachment activation fallback, or the main-world attachment activation fallback.
-
-Automated validation checks this contract before release packaging.
+- LOCAL PASS.
+- JavaScript validation PASS.
+- ZIP integrity PASS.
+- Real control export PASS: **9 added / 0 skipped**.
+- `Dniprorudne Pryvitannya.mp4` captured successfully as one file.
 
 ## Chrome Web Store
 
-Existing extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`
+Existing extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`.
 
-Submit 2.0.1 as an update to the existing ChatExtra Toolkit listing.
+Version 2.26.0 is prepared as the next update for the existing listing.

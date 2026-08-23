@@ -90,7 +90,7 @@
       });
       return String(runs?.[0]?.result?.text || '').trim();
     } catch (error) {
-      console.error('Thread to Markdown: selected text could not be read.', error);
+      console.error('GPT Project & Memory Tools: selected text could not be read.', error);
       throw new Error(
         localized('selectionUnavailableError') ||
         'The selected text cannot be read on this page.'

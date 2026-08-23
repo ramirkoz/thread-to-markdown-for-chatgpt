@@ -100,7 +100,7 @@
       });
       return runs?.[0]?.result || null;
     } catch (error) {
-      console.error('Thread to Markdown: webpage could not be read.', error);
+      console.error('GPT Project & Memory Tools: webpage could not be read.', error);
       throw new Error(
         localized('webpageUnavailableError') ||
         'The current webpage cannot be read.'

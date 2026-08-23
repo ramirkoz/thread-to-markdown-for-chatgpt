@@ -11,7 +11,7 @@
   const isUkrainian = String(chrome.i18n.getUILanguage?.() || 'en').toLowerCase().startsWith('uk');
 
   const labels = isUkrainian ? {
-    root: 'Thread to Markdown: передати в ChatGPT',
+    root: 'GPT Project & Memory Tools: передати в ChatGPT',
     selection: 'Виділений текст',
     page: 'Поточну сторінку',
     screenshot: 'Видимий скриншот',
@@ -23,7 +23,7 @@
     youtubeFailed: 'Не вдалося отримати субтитри YouTube.',
     chatgptOnly: 'Інструменти експорту ChatGPT доступні через верхній ярлик розширення.'
   } : {
-    root: 'Thread to Markdown: send to ChatGPT',
+    root: 'GPT Project & Memory Tools: send to ChatGPT',
     selection: 'Selected text',
     page: 'Current webpage',
     screenshot: 'Visible screenshot',
@@ -54,7 +54,7 @@
     try {
       await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
     } catch (error) {
-      console.warn('Thread to Markdown: side panel behavior could not be configured.', error);
+      console.warn('GPT Project & Memory Tools: side panel behavior could not be configured.', error);
     }
   }
 
@@ -68,7 +68,7 @@
       else await chrome.action.disable(tabId);
       await chrome.action.setTitle({
         tabId,
-        title: chatgpt ? (chrome.i18n.getMessage('actionTitle') || 'Thread to Markdown') : labels.chatgptOnly
+        title: chatgpt ? (chrome.i18n.getMessage('actionTitle') || 'GPT Project & Memory Tools') : labels.chatgptOnly
       });
     } catch {}
 
@@ -284,7 +284,7 @@
     };
 
     void run().catch((error) => {
-      console.error('Thread to Markdown: context-menu handoff failed.', error);
+      console.error('GPT Project & Memory Tools: context-menu handoff failed.', error);
       void showPageToast(tab?.id, String(error?.message || error), true);
     });
   });

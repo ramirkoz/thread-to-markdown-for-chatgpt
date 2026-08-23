@@ -297,6 +297,9 @@ async function collectPortableAssets(selectedIndices) {
 }
 
 function buildPortablePackage(payload, capturedAssets, jsonFilename) {
+  const finalCapturedAssets = typeof suppressResolvedAttachmentFallbacks === 'function'
+    ? suppressResolvedAttachmentFallbacks(capturedAssets)
+    : (Array.isArray(capturedAssets) ? capturedAssets : []);
   const files = [];
   const usedPaths = new Set();
   const assetManifest = [];
@@ -317,7 +320,7 @@ function buildPortablePackage(payload, capturedAssets, jsonFilename) {
     return candidate;
   };
 
-  for (const asset of Array.isArray(capturedAssets) ? capturedAssets : []) {
+  for (const asset of finalCapturedAssets) {
     const manifestItem = { ...asset };
     delete manifestItem.dataUrl;
 
@@ -396,13 +399,26 @@ function buildPortablePackage(payload, capturedAssets, jsonFilename) {
       selectedCount: packagePayload.selectedCount,
       includedAssets: assetManifest.filter((item) => item.included && item.path).length,
       skippedAssets: assetManifest.filter((item) => !item.included).length,
+      diagnostics: packagePayload.exportDiagnostics || {},
       assets: assetManifest
     }, null, 2))
   });
+  const missingAssets = assetManifest.filter((item) => !item.included);
+  if (missingAssets.length) {
+    files.push({
+      name: 'MISSING_FILES.txt',
+      data: encodeText([
+        'Files detected in the ChatGPT conversation but not captured into this archive:',
+        '',
+        ...missingAssets.map((item, index) => `${index + 1}. ${item.filename || item.label || 'unnamed file'}\n   Message: ${Number.isInteger(Number(item.messageIndex)) && Number(item.messageIndex) >= 0 ? Number(item.messageIndex) + 1 : 'unknown'}\n   Reason: ${item.reason || 'Unknown reason'}`)
+      ].join('\n'))
+    });
+  }
+
   files.push({
     name: 'README.txt',
     data: encodeText([
-      'Thread to Markdown for ChatGPT portable package',
+      'GPT Project & Memory Tools portable package',
       '',
       'Open conversation.html for the formatted offline copy.',
       'conversation.md, conversation.txt, and conversation.json contain the same selected messages in other formats.',

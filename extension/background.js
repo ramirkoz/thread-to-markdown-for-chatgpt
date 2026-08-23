@@ -2,13 +2,22 @@
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const type = message?.type;
+  if (type === 'cancel-zip-export') {
+    const tabId = Number(message.tabId);
+    if (!Number.isInteger(tabId)) { sendResponse({ ok:false, error:'No active tab was found.' }); return false; }
+    try { self.cancelZipExport?.(String(message.exportId || '')); } catch (_) {}
+    chrome.tabs.sendMessage(tabId, { type:'gptpm-cancel-zip-export', exportId:String(message.exportId || '') })
+      .catch(() => null)
+      .finally(() => sendResponse({ ok:true }));
+    return true;
+  }
   if (!['inspect-thread', 'export-thread', 'prepare-thread'].includes(type)) return false;
 
   let task;
   if (type === 'inspect-thread') {
     task = inspectThread(message.tabId);
   } else if (type === 'export-thread') {
-    task = exportThread(message.tabId, message.selectedIndices, message.format);
+    task = exportThread(message.tabId, message.selectedIndices, message.format, message.exportId);
   } else {
     task = prepareThread(message.tabId, message.selectedIndices, message.format);
   }
@@ -16,7 +25,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   task
     .then((result) => sendResponse({ ok: true, ...result }))
     .catch((error) => {
-      console.error('Thread to Markdown:', error);
+      console.error('GPT Project & Memory Tools:', error);
       sendResponse({ ok: false, error: String(error?.message || error) });
     });
 
@@ -38,7 +47,7 @@ async function inspectThread(tabId) {
   };
 }
 
-async function exportThread(tabId, selectedIndices, requestedFormat) {
+async function exportThread(tabId, selectedIndices, requestedFormat, exportId = null) {
   const result = await prepareThread(tabId, selectedIndices, requestedFormat);
 
   const downloadId = await chrome.downloads.download({

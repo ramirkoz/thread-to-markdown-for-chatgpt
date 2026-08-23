@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>ChatExtra Toolkit</title>
+  <title>GPT Project & Memory Tools</title>
   <link rel="stylesheet" href="popup.css">
   <link rel="stylesheet" href="sidepanel.css">
   <link rel="stylesheet" href="thread-workspace.css">
@@ -13,7 +13,7 @@
     <header>
       <img src="icons/icon48.png" alt="" width="40" height="40">
       <div>
-        <h1>ChatExtra Toolkit</h1>
+        <h1>GPT Project & Memory Tools</h1>
         <p data-i18n="popupTagline">Choose messages and export them locally.</p>
       </div>
     </header>
@@ -74,6 +74,18 @@
       <button id="copy" class="secondary" type="button" data-i18n="copySelectedButton" disabled>Copy selected</button>
       <button id="export" class="primary" type="button" data-i18n="exportButton" disabled>Export selected</button>
     </div>
+    <section id="export-progress" class="export-progress sidepanel-export-progress" hidden aria-live="polite">
+      <div class="export-progress-head">
+        <strong id="export-progress-stage" data-i18n="zipProgressPreparing">Preparing archive…</strong>
+        <span id="export-progress-percent">0%</span>
+      </div>
+      <progress id="export-progress-bar" max="100" value="0"></progress>
+      <div class="export-progress-meta">
+        <span id="export-progress-detail"></span>
+        <span id="export-progress-time"></span>
+      </div>
+      <button id="cancel-export" class="export-cancel" type="button" data-i18n="zipCancelButton">Cancel export</button>
+    </section>
     <p id="status" role="status" aria-live="polite" data-i18n="loadingStatus">Reading the open conversation…</p>
 
     <details id="prompt-library" class="prompt-library">
@@ -107,63 +119,97 @@
       </div>
     </details>
 
-    <details id="thread-workspace" class="thread-workspace">
+    <details id="thread-workspace" class="thread-workspace" open>
       <summary>
-        <span>Local workspace / Локальна бібліотека чатів</span>
+        <span id="workspace-summary-title">Local project memory</span>
         <span id="workspace-count" class="workspace-count">0</span>
       </summary>
       <div class="workspace-body">
-        <p class="workspace-note">Folders, tags, notes and Markdown snapshots stay in this browser profile. / Папки, теги, нотатки та знімки Markdown зберігаються локально.</p>
-
-        <section class="workspace-current">
-          <strong id="workspace-current-title">Current conversation</strong>
-          <label>
-            <span>Folder / Папка</span>
-            <input id="workspace-folder" type="text" maxlength="80" list="workspace-folder-list" autocomplete="off" placeholder="Projects / Проєкти">
-            <datalist id="workspace-folder-list"></datalist>
-          </label>
-          <label>
-            <span>Tags / Теги</span>
-            <input id="workspace-tags" type="text" maxlength="500" autocomplete="off" placeholder="research, work, important">
-          </label>
-          <label>
-            <span>Note / Нотатка</span>
-            <textarea id="workspace-note" maxlength="8000" rows="3" placeholder="Local note about this conversation / Локальна нотатка про цю розмову"></textarea>
-          </label>
-          <div class="workspace-row">
-            <button id="workspace-save-current" class="workspace-button primary" type="button">Save current chat / Зберегти чат</button>
-            <button id="workspace-clear-meta" class="workspace-button" type="button">Clear fields / Очистити поля</button>
+        <section class="workspace-memory-home">
+          <div class="workspace-ready-line">
+            <strong id="workspace-ready-status">Memory status</strong>
+            <span id="workspace-ready-badge" class="workspace-ready-badge">0/0</span>
           </div>
+          <p id="workspace-ready-help" class="workspace-note"></p>
+          <label class="workspace-toggle workspace-auto-main">
+            <input id="workspace-auto-memory" type="checkbox">
+            <span id="workspace-auto-label">Automatic memory</span>
+          </label>
+          <div id="workspace-sync-progress" class="workspace-sync-progress" hidden aria-live="polite">
+            <div class="workspace-sync-progress-head">
+              <strong id="workspace-sync-stage">Synchronizing project…</strong>
+              <span id="workspace-sync-percent">0%</span>
+            </div>
+            <progress id="workspace-sync-progress-bar" max="100" value="0"></progress>
+            <div id="workspace-sync-detail" class="workspace-sync-detail"></div>
+          </div>
+          <p id="workspace-auto-status" class="workspace-note workspace-auto-quiet"></p>
+          <p id="workspace-memory-status" class="workspace-note"></p>
         </section>
 
-        <div class="workspace-toolbar">
-          <label>
-            <span>Search / Пошук</span>
-            <input id="workspace-search" type="search" autocomplete="off" placeholder="Title, tag, note / Назва, тег, нотатка">
-          </label>
-          <label>
-            <span>Folder / Папка</span>
-            <select id="workspace-folder-filter"><option value="">All folders / Усі папки</option></select>
-          </label>
-        </div>
+        <details class="workspace-service" id="workspace-service-details">
+          <summary id="workspace-service-summary">Service & manual controls</summary>
+          <div class="workspace-service-body">
+            <section class="workspace-service-primary">
+              <div class="workspace-row workspace-row-main workspace-service-sync-row">
+                <span id="workspace-service-sync-note" class="workspace-note">Manual refresh</span>
+                <button id="workspace-sync-project" class="workspace-button" type="button">Sync now</button>
+              </div>
+            </section>
 
-        <p id="workspace-empty" class="workspace-empty">No saved chats yet. / Збережених чатів ще немає.</p>
-        <div id="workspace-list" class="workspace-list" role="list"></div>
+            <details class="workspace-subsection" id="workspace-meta-details">
+              <summary id="workspace-meta-summary">Chat metadata</summary>
+              <section class="workspace-current">
+                <strong id="workspace-current-title">Current conversation</strong>
+                <label><span id="workspace-project-label">Project</span><input id="workspace-project" type="text" maxlength="120" list="workspace-project-list" autocomplete="off"><datalist id="workspace-project-list"></datalist></label>
+                <label><span id="workspace-folder-label">Folder</span><input id="workspace-folder" type="text" maxlength="80" list="workspace-folder-list" autocomplete="off"><datalist id="workspace-folder-list"></datalist></label>
+                <label><span id="workspace-tags-label">Tags</span><input id="workspace-tags" type="text" maxlength="800" autocomplete="off"></label>
+                <label><span id="workspace-note-label">Note</span><textarea id="workspace-note" maxlength="16000" rows="2"></textarea></label>
+                <div class="workspace-row">
+                  <button id="workspace-save-current" class="workspace-button primary" type="button">Save chat</button>
+                  <button id="workspace-snapshot-now" class="workspace-button" type="button">Refresh memory</button>
+                  <button id="workspace-clear-meta" class="workspace-button" type="button">Clear</button>
+                </div>
+              </section>
+            </details>
 
-        <div class="workspace-bulk-actions">
-          <button id="workspace-export-selected" class="workspace-button primary" type="button" disabled>Export selected ZIP / Експорт вибраних ZIP</button>
-          <button id="workspace-delete-selected" class="workspace-button danger" type="button" disabled>Delete selected / Видалити вибрані</button>
-        </div>
+            <details class="workspace-subsection" id="workspace-manual-memory">
+              <summary id="workspace-manual-summary">Manual memory search</summary>
+              <section class="workspace-memory">
+                <label><span id="workspace-memory-query-label">Memory query</span><textarea id="workspace-memory-query" rows="2"></textarea></label>
+                <div class="workspace-row">
+                  <button id="workspace-memory-find" class="workspace-button" type="button">Find context</button>
+                  <button id="workspace-memory-insert" class="workspace-button primary" type="button" disabled>Insert into ChatGPT</button>
+                </div>
+                <div id="workspace-memory-results" class="workspace-memory-results"></div>
+              </section>
+            </details>
 
-        <section class="workspace-backup">
-          <strong>Backup / Резервна копія</strong>
-          <p class="workspace-note">Backup includes saved chats and the local prompt library. / Копія містить збережені чати та локальну бібліотеку промптів.</p>
-          <div class="workspace-backup-actions">
-            <button id="workspace-backup" class="workspace-button" type="button">Create backup / Створити копію</button>
-            <button id="workspace-restore" class="workspace-button" type="button">Restore backup / Відновити</button>
-            <input id="workspace-restore-file" type="file" accept="application/json,.json" hidden>
+            <details class="workspace-subsection" id="workspace-library-details">
+              <summary id="workspace-library-summary">Saved chats</summary>
+              <div class="workspace-toolbar workspace-toolbar-3">
+                <label><span id="workspace-search-label">Search</span><input id="workspace-search" type="search" autocomplete="off"></label>
+                <label><span id="workspace-project-filter-label">Project</span><select id="workspace-project-filter"><option value="">All projects</option></select></label>
+                <label><span id="workspace-folder-filter-label">Folder</span><select id="workspace-folder-filter"><option value="">All folders</option></select></label>
+              </div>
+              <p id="workspace-empty" class="workspace-empty">No saved chats yet.</p>
+              <div id="workspace-list" class="workspace-list" role="list"></div>
+              <div class="workspace-bulk-actions">
+                <button id="workspace-export-selected" class="workspace-button" type="button" disabled>Export selected</button>
+                <button id="workspace-delete-selected" class="workspace-button danger" type="button" disabled>Delete selected</button>
+              </div>
+            </details>
+
+            <details class="workspace-subsection" id="workspace-backup-details">
+              <summary id="workspace-backup-summary">Backups</summary>
+              <section class="workspace-backup"><div class="workspace-backup-actions">
+                <button id="workspace-backup" class="workspace-button" type="button">Create backup</button>
+                <button id="workspace-restore" class="workspace-button" type="button">Restore backup</button>
+                <input id="workspace-restore-file" type="file" accept="application/json,.json" hidden>
+              </div></section>
+            </details>
           </div>
-        </section>
+        </details>
       </div>
     </details>
 
