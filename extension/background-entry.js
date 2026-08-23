@@ -31,7 +31,7 @@ function cleanExportResult(result, options) {
       }
       result.content = JSON.stringify(payload, null, 2);
     } catch (error) {
-      console.warn('ChatExtra Toolkit: JSON cleanup skipped.', error);
+      console.warn('GPT Project & Memory Tools: JSON cleanup skipped.', error);
     }
   } else if (options.format === 'markdown') {
     result.content = stripServiceArtifacts(result.content);
@@ -92,3 +92,6 @@ importScripts('attachment-link-path-fix.js');
 importScripts('zip-safe-hotfix.js');
 importScripts('selected-text-handoff-background.js');
 importScripts('screenshot-handoff-background.js');
+
+importScripts('package-export-complete.js');
+importScripts('project-memory-background.js');
