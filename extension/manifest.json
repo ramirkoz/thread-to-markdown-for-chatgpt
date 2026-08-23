@@ -1,19 +1,21 @@
 {
   "manifest_version": 3,
-  "name": "ChatExtra Toolkit",
-  "version": "2.0.1",
-  "description": "Export and organize ChatGPT conversations locally, save prompts, and send selected webpage content into ChatGPT.",
+  "name": "GPT Project & Memory Tools",
+  "version": "2.26.0",
+  "description": "Automatic local ChatGPT Project memory with resilient mixed-attachment export, large-video capture, filename alias coalescing, and content deduplication.",
   "default_locale": "en",
   "permissions": [
     "activeTab",
     "scripting",
-    "downloads"
+    "downloads",
+    "storage"
   ],
   "optional_host_permissions": [
-    "https://chatgpt.com/*"
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*"
   ],
   "action": {
-    "default_title": "ChatExtra Toolkit",
+    "default_title": "GPT Project & Memory Tools",
     "default_popup": "popup-entry.html",
     "default_icon": {
       "16": "icons/icon16.png",
