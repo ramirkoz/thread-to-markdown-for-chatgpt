@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "GPT Project & Memory Tools",
-  "version": "2.26.0",
-  "description": "Automatic local ChatGPT Project memory with resilient mixed-attachment export, large-video capture, filename alias coalescing, and content deduplication.",
+  "version": "2.32.1",
+  "description": "Local ChatGPT project memory, conversation export, reusable prompts, attachment handling, and reliable large-file ZIP export.",
   "default_locale": "en",
   "permissions": [
     "activeTab",
