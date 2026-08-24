@@ -1,25 +1,32 @@
-# GPT Project & Memory Tools 2.26.0
+# GPT Project & Memory Tools 2.32.1
 
-Stable control release for local ChatGPT Project memory and mixed-attachment export.
+Current tested release for local ChatGPT Project memory and resilient conversation export.
 
-## Final fixes
+## Release scope
 
-- Video attachments can use up to 512 MB per file while non-video files retain the 48 MB limit.
-- Full ZIP asset budget increased to 640 MB.
-- Video transfer budget increased to 90 seconds with a 60-second active request window.
-- Preserved exact `file_id` matching, signed media replay, XLSX duplicate-name handling, generated-file capture, filename alias coalescing and PDF/content deduplication.
-- Preserved progress UI, cancellation and fail-open ZIP behavior.
+Version 2.32.1 keeps the final 2.32.0 export behavior unchanged and updates the Chrome Web Store manifest description to meet the store length requirement.
+
+The 2.27.0–2.32.0 hardening cycle improved attachment naming and deduplication, large-file handling, timeout behavior, exact resource matching, and legacy-file failure reporting.
+
+## Verified behavior
+
+- Local project memory remains browser-local.
+- Current mixed-attachment control export: **9 added / 0 skipped**.
+- Large MP4 capture (~104.8 MB): PASS.
+- Large PPTX capture (~17.9 MB): PASS.
+- Duplicate file content is stored once and referenced consistently.
+- Expired or inaccessible legacy ChatGPT attachments are not replaced with guessed files; they are reported in `MISSING_FILES.txt`.
+- Chrome Web Store manifest description length: PASS.
 
 ## Test status
 
-- LOCAL PASS.
-- JavaScript validation PASS.
-- ZIP integrity PASS.
-- Real control export PASS: **9 added / 0 skipped**.
-- `Dniprorudne Pryvitannya.mp4` captured successfully as one file.
+- LIVE functional baseline: PASS.
+- Local automated validation: PASS.
+- JavaScript syntax: 49/49 PASS.
+- ZIP integrity: PASS.
 
 ## Chrome Web Store
 
 Existing extension ID: `ingagbhapppiiiccljbhiledobnmhhfb`.
 
-Version 2.26.0 is prepared as the next update for the existing listing.
+Version 2.32.1 is the current package prepared for the existing listing.
