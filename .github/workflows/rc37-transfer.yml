@@ -1,0 +1,28 @@
+name: RC37 Temporary Transfer
+
+on:
+  push:
+    branches: [temp/rc37-transfer]
+
+permissions:
+  contents: read
+
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified RC37 installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://release-assets.githubusercontent.com/github-production-release-asset/1362388503/01bbcd13-2293-449d-b7aa-d7f437c73b24?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4OTQ3MjMyMCwibmJmIjoxNzg5NDcwNTIwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.Iemo9xb3rb8_iiZJig_9r5nZu0zGO3LGEVAw7ooD0YU&response-content-disposition=attachment%3B+filename%3DKONTUR_RC37_ONE_FOLDER_INSTALLER.exe&response-content-type=application%2Foctet-stream&rscd=attachment%3B+filename%3DKONTUR_RC37_ONE_FOLDER_INSTALLER.exe&rsct=application%2Foctet-stream&se=2026-09-15T11%3A57%3A04Z&sig=pS%2B8ip57rvHTRdQwqO5FZn9Uk2L%2FpUcKMSKYO48YiC8%3D&ske=2026-09-15T11%3A57%3A04Z&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sks=b&skt=2026-09-15T10%3A56%3A11Z&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skv=2018-11-09&sp=r&spr=https&sr=b&sv=2018-11-09'
+          curl -L --fail --retry 3 "$URL" -o KONTUR_RC37_ONE_FOLDER_INSTALLER.exe
+          echo '49be72331ccde5b7963c21b47560872bbb5c8ba9eeaca6ae4e94ae07b146dcd6  KONTUR_RC37_ONE_FOLDER_INSTALLER.exe' | sha256sum -c -
+          test "$(stat -c '%s' KONTUR_RC37_ONE_FOLDER_INSTALLER.exe)" = "54804888"
+      - name: Upload RC37 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KONTUR_RC37_ONE_FOLDER_INSTALLER
+          path: KONTUR_RC37_ONE_FOLDER_INSTALLER.exe
+          if-no-files-found: error
+          retention-days: 1
