@@ -1,0 +1,27 @@
+name: RC36 Temporary Transfer
+
+on:
+  push:
+    branches: [temp/rc36-transfer]
+
+permissions:
+  contents: read
+
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified RC36 installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 --retry-delay 2 'https://tinyurl.com/24v8az7t' -o KONTUR_RC36_ONE_FOLDER_INSTALLER.exe
+          echo '1bcef0b1864c23f493d7603c7369ce439f20883c516e99c6d3ece059317c787a  KONTUR_RC36_ONE_FOLDER_INSTALLER.exe' | sha256sum -c -
+          ls -lh KONTUR_RC36_ONE_FOLDER_INSTALLER.exe
+      - name: Upload RC36 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KONTUR_RC36_ONE_FOLDER_INSTALLER
+          path: KONTUR_RC36_ONE_FOLDER_INSTALLER.exe
+          retention-days: 1
+          compression-level: 0
