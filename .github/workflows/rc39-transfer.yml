@@ -1,0 +1,20 @@
+name: RC39 Temporary Transfer
+
+on:
+  push:
+    branches: [temp/rc39-transfer2]
+
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download RC39 installer
+        run: |
+          curl -L --fail --retry 3 --output KONTUR_RC39_ONE_FOLDER_INSTALLER.exe https://tinyurl.com/25zk7mjg
+          echo "b8cb5b8d5a613337ff7fb44f134e7a18c28e30f29da955988148b8621772fff9  KONTUR_RC39_ONE_FOLDER_INSTALLER.exe" | sha256sum -c -
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KONTUR_RC39_ONE_FOLDER_INSTALLER
+          path: KONTUR_RC39_ONE_FOLDER_INSTALLER.exe
+          retention-days: 1
