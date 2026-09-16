@@ -1,0 +1,32 @@
+name: Temporary encrypted RC49 bridge
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/_tmp_rc49_bridge.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Download encrypted payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 'https://brick-lane-partly-final.trycloudflare.com/rc49.enc.b64' -o "$RUNNER_TEMP/rc49.enc.b64"
+          base64 -d "$RUNNER_TEMP/rc49.enc.b64" > "$RUNNER_TEMP/kontur-rc49-transfer.enc"
+          test -s "$RUNNER_TEMP/kontur-rc49-transfer.enc"
+      - name: Publish temporary encrypted release asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release delete-asset v2.0.0 kontur-rc49-transfer.enc --yes 2>/dev/null || true
+          gh release upload v2.0.0 "$RUNNER_TEMP/kontur-rc49-transfer.enc" --clobber
