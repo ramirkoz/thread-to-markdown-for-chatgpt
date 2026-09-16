@@ -30,3 +30,11 @@ jobs:
           set -euo pipefail
           gh release delete-asset v2.0.0 kontur-rc49-transfer.enc --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
           gh release upload v2.0.0 "$RUNNER_TEMP/kontur-rc49-transfer.enc" --repo "$GITHUB_REPOSITORY" --clobber
+      - name: Upload temporary encrypted workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rc49-drive-bridge
+          path: ${{ runner.temp }}/kontur-rc49-transfer.enc
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0
