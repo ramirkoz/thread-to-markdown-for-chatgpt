@@ -28,5 +28,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          gh release delete-asset v2.0.0 kontur-rc49-transfer.enc --yes 2>/dev/null || true
-          gh release upload v2.0.0 "$RUNNER_TEMP/kontur-rc49-transfer.enc" --clobber
+          gh release delete-asset v2.0.0 kontur-rc49-transfer.enc --repo "$GITHUB_REPOSITORY" --yes 2>/dev/null || true
+          gh release upload v2.0.0 "$RUNNER_TEMP/kontur-rc49-transfer.enc" --repo "$GITHUB_REPOSITORY" --clobber
