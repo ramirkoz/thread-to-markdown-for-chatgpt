@@ -28,3 +28,4 @@ jobs:
           set -euo pipefail
           gh release delete tmp-rc51-bridge --yes --cleanup-tag 2>/dev/null || true
           gh release create tmp-rc51-bridge rc51.zip.enc --title 'Temporary RC51 bridge' --notes 'Encrypted transfer payload only. No key published.' --prerelease
+# trigger 2026-09-17
