@@ -18,8 +18,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL --retry 3 'https://tempfile.org/NoZwzQ5k1MS/download' -o rc51.zip.enc
-          echo '7412ae3501f2bd8a203d86d89c34401b1e4ac3e457632bad9b76edb86f75aadc  rc51.zip.enc' | sha256sum -c -
+          curl -fsSL --retry 5 --retry-delay 2 'https://fluid-respondents-rose-dance.trycloudflare.com/rc51.zip.enc' -o rc51.zip.enc
+          echo '96dd502170909ce7408be35cf41350e8b94890d26694bacc4c58a1886531b537  rc51.zip.enc' | sha256sum -c -
       - name: Publish temporary encrypted release asset
         shell: bash
         env:
@@ -28,4 +28,3 @@ jobs:
           set -euo pipefail
           gh release delete tmp-rc51-bridge --yes --cleanup-tag 2>/dev/null || true
           gh release create tmp-rc51-bridge rc51.zip.enc --title 'Temporary RC51 bridge' --notes 'Encrypted transfer payload only. No key published.' --prerelease
-# trigger 2026-09-17
