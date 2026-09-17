@@ -1,0 +1,30 @@
+name: Temporary RC51 encrypted bridge
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/_tmp_rc51_public_bridge.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bridge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download encrypted RC51 payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 'https://tempfile.org/NoZwzQ5k1MS/download' -o rc51.zip.enc
+          echo '7412ae3501f2bd8a203d86d89c34401b1e4ac3e457632bad9b76edb86f75aadc  rc51.zip.enc' | sha256sum -c -
+      - name: Publish temporary encrypted release asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release delete tmp-rc51-bridge --yes --cleanup-tag 2>/dev/null || true
+          gh release create tmp-rc51-bridge rc51.zip.enc --title 'Temporary RC51 bridge' --notes 'Encrypted transfer payload only. No key published.' --prerelease
