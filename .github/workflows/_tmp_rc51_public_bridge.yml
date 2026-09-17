@@ -1,7 +1,7 @@
 name: Temporary RC51 encrypted bridge
 
 on:
-  push:
+  pull_request:
     branches: [main]
     paths:
       - ".github/workflows/_tmp_rc51_public_bridge.yml"
@@ -18,8 +18,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -fsSL --retry 5 --retry-delay 2 'https://fluid-respondents-rose-dance.trycloudflare.com/rc51.zip.enc' -o rc51.zip.enc
+          curl -fsSL --retry 8 --retry-delay 2 'https://fluid-respondents-rose-dance.trycloudflare.com/rc51.zip.enc' -o rc51.zip.enc
           echo '96dd502170909ce7408be35cf41350e8b94890d26694bacc4c58a1886531b537  rc51.zip.enc' | sha256sum -c -
+      - name: Upload encrypted RC51 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rc51-encrypted-relay
+          path: rc51.zip.enc
+          compression-level: 0
+          retention-days: 1
       - name: Publish temporary encrypted release asset
         shell: bash
         env:
