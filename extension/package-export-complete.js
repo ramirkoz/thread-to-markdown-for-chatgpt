@@ -120,12 +120,13 @@
     capturedAssets = capturedAssets.filter((item) => item?.type === 'notice' || !isServiceAttachmentName(item?.filename || item?.label));
     capturedAssets = mergeTranscriptAttachmentReferences(capturedAssets, payload);
     capturedAssets = suppressResolvedAttachmentFallbacks(capturedAssets);
+    capturedAssets = normalizeAttachmentLabels(capturedAssets);
     const contentDedupe = await dedupeIncludedAssetsByContent(capturedAssets);
     capturedAssets = contentDedupe.assets;
 
     payload.exportDiagnostics = {
       attachmentDetection: {
-        version: '2.26.0',
+        version: '2.32.0',
         early: summarizeAttachmentDiagnostics(earlyHints),
         late: summarizeAttachmentDiagnostics(lateHints),
         mergedHints: summarizeAttachmentDiagnostics(apiHints),
@@ -296,13 +297,26 @@ function buildAttachmentCandidateDescriptorsFromHints(rawHints, selectedIndices)
   };
   const isService = (value) => /^(?:sprites?[-_.]|favicon[-_.]|icon[-_.]|attachment-(?:file-)?(?:icon|tile|radius)[-_.])|(?:^|[-_.])sprites?(?:[-_.]|$)/i.test(clean(value));
   const groups = new Map();
-  const diagnostics = { rawHints:hints.length, promotedHints:0, identityCandidates:0, unresolvedCandidates:0, rejectedUnsafeUrls:0, pairedIdentityOnly:0, coalescedAliases:0, suppressedAliases:0, matchedResourceUrls:0 };
+  const diagnostics = { rawHints:hints.length, promotedHints:0, identityCandidates:0, unresolvedCandidates:0, rejectedUnsafeUrls:0, pairedIdentityOnly:0, coalescedAliases:0, suppressedAliases:0, matchedResourceUrls:0, matchedResourceFilenames:0, rejectedDomainAliases:0 };
 
-  // 2.25.0: resource timing entries are intentionally collected without a message index.
-  // Re-bind them only by an exact file_id match. This lets a currently loaded media URL
-  // (especially MP4 playback/stream URLs) enrich its real file card without leaking URLs
-  // between neighbouring attachments.
+  // 2.32.0: resource timing entries are intentionally collected without a message index.
+  // Prefer exact file_id rebinding, but also keep a filename index when the signed resource
+  // itself exposes an exact filename (for example through ?fn=...). This safely recovers
+  // cards whose DOM lost file_id while the browser still has the signed download URL.
   const resourceUrlsByFileId = new Map();
+  const resourceIdentityByFilename = new Map();
+  const filenameFromResource = (hint, url) => {
+    const explicit = filenameOf(hint);
+    if (explicit) return explicit;
+    try {
+      const parsed = new URL(url);
+      const fn = clean(parsed.searchParams.get('fn') || parsed.searchParams.get('filename') || parsed.searchParams.get('file_name') || '');
+      if (fn && /\.[a-z0-9]{1,10}$/i.test(fn)) return sanitize(fn, '');
+      const tail = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).pop() || '');
+      if (tail && /\.[a-z0-9]{1,10}$/i.test(tail) && !/^(?:download|content|attachment)$/i.test(tail)) return sanitize(tail, '');
+    } catch (_) {}
+    return '';
+  };
   for (const hint of hints) {
     if (!hint || typeof hint !== 'object') continue;
     if (Number.isInteger(hint.messageIndex) && hint.messageIndex >= 0) continue;
@@ -313,6 +327,15 @@ function buildAttachmentCandidateDescriptorsFromHints(rawHints, selectedIndices)
     const current = resourceUrlsByFileId.get(id) || [];
     if (!current.includes(info.url)) current.push(info.url);
     resourceUrlsByFileId.set(id, current.slice(-12));
+
+    const resourceFilename = filenameFromResource(hint, info.url);
+    const nameKey = normalizeName(resourceFilename);
+    if (nameKey) {
+      const byName = resourceIdentityByFilename.get(nameKey) || new Map();
+      const identityKey = `${id}|${info.url}`;
+      if (!byName.has(identityKey)) byName.set(identityKey, { fileId:id, url:info.url });
+      resourceIdentityByFilename.set(nameKey, byName);
+    }
   }
 
   const add = (item) => {
@@ -404,6 +427,33 @@ function buildAttachmentCandidateDescriptorsFromHints(rawHints, selectedIndices)
     urls:[...new Set(candidate.urls.filter(Boolean))],
     detectedBy:[...new Set(candidate.detectedBy.filter(Boolean))].join('+')
   }));
+
+  // 2.32.0: exact-filename resource rescue. Only bind when one unique signed resource
+  // identity exists for that exact filename. Ambiguous same-name resources remain missing.
+  for (const candidate of candidates) {
+    if (candidate.fileIds.length || candidate.sandboxPaths.length || candidate.urls.length) continue;
+    const nameKey = normalizeName(candidate.filename);
+    const matches = nameKey ? resourceIdentityByFilename.get(nameKey) : null;
+    if (!matches || matches.size !== 1) continue;
+    const match = [...matches.values()][0];
+    if (match.fileId) candidate.fileIds = [match.fileId];
+    if (match.url) candidate.urls = [match.url];
+    candidate.detectedBy = [...new Set(`${candidate.detectedBy || ''}+resource-filename-exact`.split('+').filter(Boolean))].join('+');
+    candidate.unresolvedCard = false;
+    diagnostics.matchedResourceFilenames += 1;
+  }
+
+  // Avoid obvious URL/domain fragments being misclassified as files, e.g. www.postman.c
+  // parsed out of a normal web link. Concrete file identities are never removed here.
+  candidates = candidates.filter((candidate) => {
+    const hasIdentity = candidate.fileIds.length || candidate.sandboxPaths.length || candidate.urls.length;
+    if (hasIdentity) return true;
+    const filename = clean(candidate.filename);
+    const label = clean(candidate.label);
+    const domainAlias = /^www\.[a-z0-9-]+\.[a-z]{1,4}$/i.test(filename) || (/^[a-z0-9-]+\.[a-z]{1,4}$/i.test(filename) && /\+\d+$/i.test(label));
+    if (domainAlias) diagnostics.rejectedDomainAliases += 1;
+    return !domainAlias;
+  });
 
   // 2.24.0: coalesce a short filename parsed from a card label into the longer filename
   // from the same message when the card label itself contains that longer filename, or
@@ -541,11 +591,16 @@ async function downloadAttachmentCandidatesModular(tabId, candidates, exportId, 
 }
 
 async function downloadSingleAttachmentDescriptor(candidateInput) {
-  const MAX_ASSET_BYTES = 48 * 1024 * 1024;
-  const MAX_VIDEO_ASSET_BYTES = 512 * 1024 * 1024;
-  const REQUEST_TIMEOUT_MS = 4500;
-  const FILE_BUDGET_MS = 14000;
-  const VIDEO_FILE_BUDGET_MS = 90000;
+  const MAX_ASSET_BYTES = 192 * 1024 * 1024;
+  const MAX_VIDEO_ASSET_BYTES = 768 * 1024 * 1024;
+  const REQUEST_TIMEOUT_MS = 30000;
+  const FILE_BUDGET_MS = 45000;
+  const LARGE_FILE_BUDGET_MS = 120000;
+  const VIDEO_FILE_BUDGET_MS = 300000;
+  const LEGACY_DISCOVERY_BUDGET_MS = 18000;
+  const CONVERSATION_ENRICH_TIMEOUT_MS = 2500;
+  const SANDBOX_DESCRIPTOR_TIMEOUT_MS = 15000;
+  const FILE_DESCRIPTOR_TIMEOUT_MS = 6000;
   const candidate = candidateInput && typeof candidateInput === 'object' ? candidateInput : {};
   const started = Date.now();
   let deadline = started + FILE_BUDGET_MS;
@@ -576,17 +631,23 @@ async function downloadSingleAttachmentDescriptor(candidateInput) {
   const conversationId = location.pathname.match(/\/c\/([a-z0-9-]{8,})/i)?.[1] || '';
   const projectId = location.href.match(/\b(g-p-[a-z0-9_-]+)\b/i)?.[1] || '';
   let filename = sanitize(candidate.filename || candidate.label, 'attachment.bin');
-  const videoCandidate = /^(?:mp4|mov|webm|avi|mkv|m4v)$/i.test(extOf(filename));
-  if (videoCandidate) deadline = started + VIDEO_FILE_BUDGET_MS;
+  const candidateExt = extOf(filename);
+  const videoCandidate = /^(?:mp4|mov|webm|avi|mkv|m4v)$/i.test(candidateExt);
+  const largeBinaryCandidate = /^(?:zip|rar|7z|tar|gz|tgz|bz2|exe|msi|dmg|pkg|apk|deb|rpm)$/i.test(candidateExt);
+  const fullBudgetMs = videoCandidate ? VIDEO_FILE_BUDGET_MS : (largeBinaryCandidate ? LARGE_FILE_BUDGET_MS : FILE_BUDGET_MS);
   const errors = [];
   let fileIds = [...new Set((candidate.fileIds || []).map(fileIdOf).filter(Boolean))];
   let sandboxPaths = [...new Set((candidate.sandboxPaths || []).map(normalizeSandbox).filter(Boolean))];
   let urls = [...new Set((candidate.urls || []).map(normalizeUrl).filter((url) => url && isAssetUrl(url)))];
+  const initialHasIdentity = Boolean(fileIds.length || sandboxPaths.length || urls.length);
+  // Legacy cards with no reusable identity get one bounded discovery window. If a real
+  // file_id, sandbox path or signed URL is recovered, the normal large-file budget is restored.
+  deadline = started + (initialHasIdentity ? fullBudgetMs : Math.min(fullBudgetMs, LEGACY_DISCOVERY_BUDGET_MS));
   const messageId = clean(candidate.messageId || '');
 
   const sessionAuth = await (async () => {
     try {
-      const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 2200);
+      const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 3000);
       const response = await fetch('/api/auth/session', { credentials:'include', cache:'no-store', headers:{ accept:'application/json' }, signal:controller.signal }).finally(() => clearTimeout(timer));
       if (!response.ok) return null;
       const session = await response.json();
@@ -660,7 +721,8 @@ async function downloadSingleAttachmentDescriptor(candidateInput) {
         range:'bytes=0-'
       } : {};
       const maxBytes = expectedVideo ? MAX_VIDEO_ASSET_BYTES : MAX_ASSET_BYTES;
-      const response = await fetchWithTimeout(url, { headers:videoHeaders }, expectedVideo ? 60000 : REQUEST_TIMEOUT_MS);
+      const largeBinary = /^(?:zip|rar|7z|tar|gz|tgz|bz2|exe|msi|dmg|pkg|apk|deb|rpm)$/i.test(expectedExt);
+      const response = await fetchWithTimeout(url, { headers:videoHeaders }, expectedVideo ? 60000 : (largeBinary ? 90000 : REQUEST_TIMEOUT_MS));
       if (!response.ok) return { error:`HTTP ${response.status}` };
       const declared = Number(response.headers.get('content-length') || 0);
       const contentRange = clean(response.headers.get('content-range') || '');
@@ -835,9 +897,11 @@ async function downloadSingleAttachmentDescriptor(candidateInput) {
 
   // Enrich this one candidate from the actual conversation payload. This is intentionally
   // done per file, so one strange message cannot crash the entire archive pipeline.
-  if (conversationId && (!fileIds.length || !sandboxPaths.length || !urls.length)) {
+  // 2.28.0: when a message-bound sandbox path is already known, do not burn the
+  // per-file budget re-fetching the whole conversation before trying that exact path.
+  if (conversationId && !sandboxPaths.length && fileIds.length && !urls.length) {
     try {
-      const response = await fetchWithTimeout(`${location.origin}/backend-api/conversation/${encodeURIComponent(conversationId)}`, { headers:{ accept:'application/json' } }, 4500);
+      const response = await fetchWithTimeout(`${location.origin}/backend-api/conversation/${encodeURIComponent(conversationId)}`, { headers:{ accept:'application/json' } }, CONVERSATION_ENRICH_TIMEOUT_MS);
       if (response.ok) {
         const conversation = await response.json();
         const mapping = conversation?.mapping && typeof conversation.mapping === 'object' ? conversation.mapping : {};
@@ -860,6 +924,9 @@ async function downloadSingleAttachmentDescriptor(candidateInput) {
     } catch (error) { errors.push(`conversation enrichment: ${String(error?.message||error)}`); }
   }
   fileIds=[...new Set(fileIds.map(fileIdOf).filter(Boolean))]; sandboxPaths=[...new Set(sandboxPaths.map(normalizeSandbox).filter(Boolean))]; urls=[...new Set(urls.map(normalizeUrl).filter((u)=>u&&isAssetUrl(u)))];
+  if (!initialHasIdentity && (fileIds.length || sandboxPaths.length || urls.length)) {
+    deadline = Math.max(deadline, started + fullBudgetMs);
+  }
 
   // Metadata validation prevents the same signed image URL/file_id being reused for XLSX,
   // DOCX, PDF, PPTX cards that happen to share a React ancestor.
@@ -906,7 +973,7 @@ async function downloadSingleAttachmentDescriptor(candidateInput) {
       const params=new URLSearchParams({message_id:messageId,sandbox_path:sandboxPath});
       const route=`${location.origin}/backend-api/conversation/${encodeURIComponent(conversationId)}/interpreter/download?${params}`;
       try{
-        const response=await fetchWithTimeout(route,{headers:{accept:'application/json'}},4500);
+        const response=await fetchWithTimeout(route,{headers:{accept:'application/json'}},SANDBOX_DESCRIPTOR_TIMEOUT_MS);
         if(!response.ok){errors.push(`sandbox HTTP ${response.status}`);continue;}
         const ct=clean(response.headers.get('content-type')).toLowerCase();
         if(!ct.includes('application/json')){const blob=await response.blob();const out=basename(sandboxPath)||filename;if(await blobValid(blob,out))return emitIncluded(blob,response.url||route,'modular-sandbox',out);errors.push('sandbox returned non-file bytes');continue;}
@@ -927,32 +994,19 @@ async function downloadSingleAttachmentDescriptor(candidateInput) {
     const isVideo=/^(?:mp4|mov|webm|avi|mkv|m4v)$/i.test(extOf(filename));
     const addRoute=(url,label)=>{if(url&&!routes.some(([existing])=>existing===url))routes.push([url,label]);};
     if(gizmoId){
-      // For video, request the original/download form before preview-inline forms.
       addRoute(`${location.origin}/backend-api/files/download/${encodedFileId}?gizmo_id=${encodeURIComponent(gizmoId)}&inline=false`,'project');
-      addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?gizmo_id=${encodeURIComponent(gizmoId)}&inline=false`,'project-alt');
-      if(isVideo){
-        addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?gizmo_id=${encodeURIComponent(gizmoId)}&inline=true`,'project-alt-inline');
-        addRoute(`${location.origin}/backend-api/files/download/${encodedFileId}?gizmo_id=${encodeURIComponent(gizmoId)}&inline=true`,'project-inline');
-      }
+      if(isVideo) addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?gizmo_id=${encodeURIComponent(gizmoId)}&inline=false`,'project-alt');
     }
     if(conversationId){
       addRoute(`${location.origin}/backend-api/files/download/${encodedFileId}?conversation_id=${encodeURIComponent(conversationId)}&inline=false`,'conversation');
-      addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?conversation_id=${encodeURIComponent(conversationId)}&inline=false`,'conversation-alt');
-      if(isVideo){
-        addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?conversation_id=${encodeURIComponent(conversationId)}&inline=true`,'conversation-alt-inline');
-        addRoute(`${location.origin}/backend-api/files/download/${encodedFileId}?conversation_id=${encodeURIComponent(conversationId)}&inline=true`,'conversation-inline');
-      }
+      if(isVideo) addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?conversation_id=${encodeURIComponent(conversationId)}&inline=false`,'conversation-alt');
     }
     addRoute(`${location.origin}/backend-api/files/download/${encodedFileId}?inline=false`,'generic');
-    addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?inline=false`,'generic-alt');
-    if(isVideo){
-      addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?inline=true`,'generic-alt-inline');
-      addRoute(`${location.origin}/backend-api/files/download/${encodedFileId}?inline=true`,'generic-inline');
-    }
+    if(isVideo) addRoute(`${location.origin}/backend-api/files/${encodedFileId}/download?inline=false`,'generic-alt');
     for(const [route,label] of routes){
       if(Date.now()>=deadline)break;
       try{
-        const response=await fetchWithTimeout(route,{headers:{accept:'application/json'}},4500);
+        const response=await fetchWithTimeout(route,{headers:{accept:'application/json'}},FILE_DESCRIPTOR_TIMEOUT_MS);
         if(!response.ok){errors.push(`${label} HTTP ${response.status}`);continue;}
         const ct=clean(response.headers.get('content-type')).toLowerCase();
         if(!ct.includes('application/json')){const blob=await response.blob();if(await blobValid(blob,filename))return emitIncluded(blob,response.url||route,`modular-${label}`);errors.push(`${label} returned wrong bytes`);continue;}
@@ -967,8 +1021,18 @@ async function downloadSingleAttachmentDescriptor(candidateInput) {
     const estuary=`${location.origin}/backend-api/estuary/content?id=${encodeURIComponent(fileId)}`; const direct=await fetchBinary(estuary,filename); if(direct.blob)return emitIncluded(direct.blob,direct.url||estuary,'modular-estuary'); if(direct.error)errors.push(`estuary: ${direct.error}`);
   }
 
-  if(Date.now()>=deadline)errors.push(`File time budget ${Math.round((videoCandidate ? VIDEO_FILE_BUDGET_MS : FILE_BUDGET_MS)/1000)}s exceeded.`);
-  return { messageIndex:candidate.messageIndex, type:'attachment', label:candidate.label||filename, filename, included:false, reason:(fileIds.length||sandboxPaths.length||urls.length)?`Message-bound file could not be downloaded: ${[...new Set(errors)].slice(0,8).join('; ')||'download route unavailable'}`:'A real file card was found, but ChatGPT exposed no file_id, sandbox path, or signed URL.', detectedBy:'modular-unresolved' };
+  if(Date.now()>=deadline)errors.push(`File time budget ${Math.round((initialHasIdentity || fileIds.length || sandboxPaths.length || urls.length ? fullBudgetMs : LEGACY_DISCOVERY_BUDGET_MS)/1000)}s exceeded.`);
+  const uniqueErrors = [...new Set(errors)];
+  const hasIdentity = Boolean(fileIds.length || sandboxPaths.length || urls.length);
+  const terminalHttp = uniqueErrors.filter((item) => /\bHTTP (?:403|404|410|422)\b/i.test(item));
+  const availabilityStatus = !hasIdentity ? 'metadata-unavailable' : (terminalHttp.length ? 'expired-or-access-denied' : 'download-failed');
+  const retryRecommended = availabilityStatus === 'download-failed';
+  const reason = !hasIdentity
+    ? 'ChatGPT no longer exposes a reusable file_id, sandbox path, or signed URL for this legacy file card.'
+    : availabilityStatus === 'expired-or-access-denied'
+      ? `ChatGPT still exposes the file reference, but the available download routes now return terminal access/not-found responses (${terminalHttp.slice(0,4).join('; ')}).`
+      : `Message-bound file could not be downloaded: ${uniqueErrors.slice(0,8).join('; ') || 'download route unavailable'}`;
+  return { messageIndex:candidate.messageIndex, type:'attachment', label:candidate.label||filename, filename, included:false, reason, availabilityStatus, retryRecommended, detectedBy:'modular-unresolved' };
 }
 
 async function collectEarlyMessageAttachmentSnapshot(selectedIndices) {
@@ -1540,14 +1604,15 @@ async function collectReactTriggeredAttachmentAssets() {
 }
 
 async function collectCompletePortableAssets(selectedIndices, rawHints, exportId) {
-  const MAX_ASSET_BYTES = 48 * 1024 * 1024;
-  const MAX_VIDEO_ASSET_BYTES = 512 * 1024 * 1024;
+  const MAX_ASSET_BYTES = 192 * 1024 * 1024;
+  const MAX_VIDEO_ASSET_BYTES = 768 * 1024 * 1024;
   const MAX_TOTAL_BYTES = 640 * 1024 * 1024;
   const MAX_ASSETS = 120;
-  const MAX_CONCURRENCY = 2;
-  const REQUEST_TIMEOUT_MS = 4500;
-  const METADATA_TIMEOUT_MS = 1800;
-  const FILE_BUDGET_MS = 12000;
+  const MAX_CONCURRENCY = 1;
+  const REQUEST_TIMEOUT_MS = 30000;
+  const METADATA_TIMEOUT_MS = 8000;
+  const FILE_BUDGET_MS = 120000;
+  const VIDEO_FILE_BUDGET_MS = 300000;
   const selected = Array.isArray(selectedIndices) ? new Set(selectedIndices.filter(Number.isInteger)) : null;
   const rawBoundHints = Array.isArray(rawHints) ? rawHints : [];
   let totalBytes = 0;
@@ -2463,7 +2528,7 @@ async function collectCompletePortableAssets(selectedIndices, rawHints, exportId
     if (cancelled) return { cancelled:true, candidate };
     let filename = sanitizeFilename(candidate.filename || candidate.label, candidate.type === 'image' ? 'image.png' : 'attachment.bin');
     const isVideoCandidate = /^(?:mp4|mov|webm|avi|mkv|m4v)$/i.test(String(filename || '').split('.').pop().toLowerCase());
-    const deadline = Date.now() + (isVideoCandidate ? 90000 : FILE_BUDGET_MS);
+    const deadline = Date.now() + (isVideoCandidate ? VIDEO_FILE_BUDGET_MS : FILE_BUDGET_MS);
 
     if (candidate.type === 'image') {
       const direct = await fetchBinary(candidate.sourceUrl, filename, deadline);
@@ -2527,7 +2592,7 @@ async function collectCompletePortableAssets(selectedIndices, rawHints, exportId
       if (direct.error) errors.push(direct.error);
     }
 
-    if (Date.now() >= deadline) errors.push(`File time budget ${Math.round(FILE_BUDGET_MS / 1000)}s exceeded.`);
+    if (Date.now() >= deadline) errors.push(`File time budget ${Math.round((isVideoCandidate ? VIDEO_FILE_BUDGET_MS : FILE_BUDGET_MS) / 1000)}s exceeded.`);
     const hasIdentity = (candidate.fileIds || []).length || (candidate.sandboxPaths || []).length;
     return { asset:{ messageIndex:candidate.messageIndex,type:'attachment',label:candidate.label || filename,filename,sourceUrl:'',included:false,reason:hasIdentity ? `Message-bound file could not be downloaded: ${[...new Set(errors)].slice(0,6).join('; ') || 'download route unavailable'}` : 'A real file card was found in this message, but no file_id or sandbox path was exposed.',detectedBy:'message-bound-resolver' } };
   };
@@ -2570,44 +2635,16 @@ async function collectCompletePortableAssets(selectedIndices, rawHints, exportId
 
 
 async function dedupeIncludedAssetsByContent(inputAssets) {
-  const assets = Array.isArray(inputAssets) ? [...inputAssets] : [];
-  const diagnostics = { version:'2.26.0', sourceUrlDuplicatesRemoved:0, sha256DuplicatesRemoved:0, hashesComputed:0 };
-  const dropped = new Set();
-  const normalizeUrlKey = (value) => {
-    const raw = String(value || '').trim();
-    if (!raw) return '';
-    try {
-      const url = new URL(raw);
-      url.hash = '';
-      return url.href;
-    } catch (_) { return raw; }
+  const assets = Array.isArray(inputAssets) ? inputAssets.map((asset) => asset && typeof asset === 'object' ? { ...asset } : asset) : [];
+  const diagnostics = {
+    version:'2.32.0',
+    sourceUrlDuplicatesRemoved:0,
+    sha256DuplicatesRemoved:0,
+    hashesComputed:0,
+    totalDuplicatesRemoved:0,
+    referencesPreserved:0
   };
-  const filenameScore = (asset) => {
-    const name = String(asset?.filename || '').normalize('NFKC').trim();
-    if (!name) return -1000;
-    let score = Math.min(name.length, 120);
-    if (/^[([{_-]/.test(name)) score -= 35;
-    if (/^attachment-[a-z0-9_-]+\.bin$/i.test(name)) score -= 80;
-    if (/^\([^)]{1,24}\)\.[a-z0-9]{1,10}$/i.test(name)) score -= 55;
-    if (/^[a-z0-9 _().-]+\.[a-z0-9]{1,10}$/i.test(name)) score += 5;
-    return score;
-  };
-  const prefer = (aIndex, bIndex) => filenameScore(assets[aIndex]) >= filenameScore(assets[bIndex]) ? aIndex : bIndex;
 
-  // Fast path: identical signed/content URL in the same message is the same binary identity.
-  const bySource = new Map();
-  for (let i = 0; i < assets.length; i += 1) {
-    const asset = assets[i];
-    if (!asset?.included || asset.type === 'notice') continue;
-    const source = normalizeUrlKey(asset.sourceUrl);
-    if (!source) continue;
-    const key = `${Number(asset.messageIndex)}|${source}`;
-    const prior = bySource.get(key);
-    if (prior == null) { bySource.set(key, i); continue; }
-    const keep = prefer(prior, i), remove = keep === prior ? i : prior;
-    bySource.set(key, keep);
-    if (!dropped.has(remove)) { dropped.add(remove); diagnostics.sourceUrlDuplicatesRemoved += 1; }
-  }
 
   const dataUrlBytes = (value) => {
     const raw = String(value || '');
@@ -2623,13 +2660,19 @@ async function dedupeIncludedAssetsByContent(inputAssets) {
         return bytes;
       }
       return new TextEncoder().encode(decodeURIComponent(payload));
-    } catch (_) { return null; }
+    } catch (_) {
+      return null;
+    }
   };
+
   const hashCache = new Map();
   const hashOf = async (index) => {
     if (hashCache.has(index)) return hashCache.get(index);
     const bytes = dataUrlBytes(assets[index]?.dataUrl);
-    if (!bytes?.byteLength || !globalThis.crypto?.subtle) { hashCache.set(index, ''); return ''; }
+    if (!bytes?.byteLength || !globalThis.crypto?.subtle) {
+      hashCache.set(index, '');
+      return '';
+    }
     const digest = await crypto.subtle.digest('SHA-256', bytes);
     diagnostics.hashesComputed += 1;
     const hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -2637,18 +2680,19 @@ async function dedupeIncludedAssetsByContent(inputAssets) {
     return hash;
   };
 
-  // Expensive hashing is only done for same-message, same-size, same-MIME groups.
+  // Hash only equal-size groups, but do it across the entire selected export.
+  // Exact SHA-256 equality is the final identity check, regardless of message index.
   const groups = new Map();
   for (let i = 0; i < assets.length; i += 1) {
-    if (dropped.has(i)) continue;
     const asset = assets[i];
     if (!asset?.included || !asset.dataUrl || asset.type === 'notice') continue;
     const size = Number(asset.size || 0);
     if (!size) continue;
-    const key = `${Number(asset.messageIndex)}|${size}|${String(asset.mimeType || '').toLowerCase()}`;
-    const list = groups.get(key) || [];
-    list.push(i); groups.set(key, list);
+    const list = groups.get(size) || [];
+    list.push(i);
+    groups.set(size, list);
   }
+
   for (const list of groups.values()) {
     if (list.length < 2) continue;
     const byHash = new Map();
@@ -2656,14 +2700,75 @@ async function dedupeIncludedAssetsByContent(inputAssets) {
       const hash = await hashOf(index);
       if (!hash) continue;
       const prior = byHash.get(hash);
-      if (prior == null) { byHash.set(hash, index); continue; }
-      const keep = prefer(prior, index), remove = keep === prior ? index : prior;
-      byHash.set(hash, keep);
-      if (!dropped.has(remove)) { dropped.add(remove); diagnostics.sha256DuplicatesRemoved += 1; }
+      if (prior == null) {
+        byHash.set(hash, index);
+        assets[index].dedupeContentKey = `sha256:${hash}`;
+        continue;
+      }
+
+      const keep = prior;
+      const duplicate = index;
+
+      assets[keep].dedupeContentKey = `sha256:${hash}`;
+      assets[duplicate].dedupeContentKey = `sha256:${hash}`;
+      assets[duplicate].deduplicated = true;
+      assets[duplicate].duplicateOfFilename = String(assets[keep]?.filename || '');
+      assets[duplicate].duplicateOfMessageIndex = Number.isInteger(assets[keep]?.messageIndex)
+        ? assets[keep].messageIndex
+        : -1;
+
+      diagnostics.sha256DuplicatesRemoved += 1;
+      diagnostics.totalDuplicatesRemoved += 1;
+      diagnostics.referencesPreserved += 1;
     }
   }
-  diagnostics.totalDuplicatesRemoved = dropped.size;
-  return { assets:assets.filter((_, index) => !dropped.has(index)), diagnostics };
+
+  return { assets, diagnostics };
+}
+
+function normalizeAttachmentLabels(inputAssets) {
+  const assets = Array.isArray(inputAssets) ? inputAssets : [];
+  const supported = '(?:pdf|docx?|xlsx?|pptx?|zip|rar|7z|tar|gz|tgz|bz2|txt|csv|tsv|jsonl?|md|html?|xml|ya?ml|ini|log|har|sql|php|m?js|cjs|tsx?|jsx|css|scss|py|ipynb|java|c|cpp|h|hpp|cs|go|rs|rb|sh|ps1|bat|cmd|exe|msi|dmg|pkg|apk|deb|rpm|png|jpe?g|gif|webp|svg|mp3|wav|flac|m4a|mp4|mov|webm|avi|mkv|woff2?|ttf|otf)';
+  const filenamePattern = new RegExp(`[^\\s<>:"/\\\\|?*]+\\.${supported}`, 'giu');
+  const clean = (value) => String(value || '')
+    .replace(/\u00a0/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const normalize = (value) => clean(value)
+    .normalize('NFKC')
+    .toLocaleLowerCase();
+  const uiNoise = /(?:^|\s)(?:document|документ|open file|відкрити файл|download file|завантажити файл|download|завантажити)(?:\s|$)/iu;
+
+  return assets.map((asset) => {
+    if (!asset || asset.type !== 'attachment') return asset;
+
+    const filename = clean(asset.filename);
+    const label = clean(asset.label);
+    if (!filename) return asset;
+    if (!label) return { ...asset, label:filename };
+
+    const tokens = [...label.matchAll(filenamePattern)].map((match) => clean(match[0])).filter(Boolean);
+    if (!tokens.length) return asset;
+
+    const wanted = normalize(filename);
+    const matchingTokens = tokens.filter((token) => normalize(token) === wanted);
+    const foreignTokens = tokens.filter((token) => normalize(token) !== wanted);
+    const repeatedFilename = matchingTokens.length > 1;
+    const contaminated = foreignTokens.length > 0 || repeatedFilename || uiNoise.test(label);
+
+    if (contaminated || !matchingTokens.length) {
+      return { ...asset, label:filename, labelNormalized:true };
+    }
+
+    // A label that is effectively just the exact filename remains unchanged.
+    if (normalize(label) === wanted) return asset;
+
+    // If the filename is embedded in UI/card text, keep the exported label deterministic.
+    if (label.length > filename.length + 12) {
+      return { ...asset, label:filename, labelNormalized:true };
+    }
+    return asset;
+  });
 }
 
 function isServiceAttachmentName(value) {

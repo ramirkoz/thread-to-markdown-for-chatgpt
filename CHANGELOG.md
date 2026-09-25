@@ -1,4 +1,55 @@
+## 2.32.0
+
+- Final hardening release for Full ZIP export.
+- Preserves the proven 2.31.0 path that captured 9/9 current mixed attachments, including 104.8 MB MP4 and 17.9 MB PPTX files.
+- Keeps exact-content SHA-256 deduplication and stable attachment labels.
+- Adds a bounded 18-second discovery window for legacy cards that no longer expose file identity; full large-file/video budgets are restored immediately when a valid identity is recovered.
+- Classifies unrecoverable legacy cards as `metadata-unavailable` or `expired-or-access-denied` instead of repeatedly cycling through long retries.
+- `MISSING_FILES.txt` now includes availability status and whether retrying is useful.
+- Does not guess attachment identities: expired ChatGPT files remain honestly listed as missing rather than substituting wrong bytes.
+
+## 2.31.0
+
+- Recover unresolved attachment cards from browser resource entries when the signed URL exposes the exact same filename and only one resource identity matches.
+- Keep ambiguous same-name resources unresolved rather than risking the wrong bytes.
+- Reject obvious domain fragments such as `www.postman.c` when they have no real file identity.
+- Preserve 2.30.0 large-file timeouts, content dedupe and label normalization.
+
+# 2.30.0
+
+- Fixes the active Full ZIP worker that still used hidden 4.5-second descriptor timeouts.
+- Stops unresolved cards from refetching the full conversation once per file.
+- Uses longer sandbox descriptor time only where a real sandbox path exists, while stale file-id routes fail faster.
+- Gives large archives/installers up to 90 seconds for the actual byte download after a signed URL is obtained.
+- Keeps the 192 MB normal per-file archive limit and existing label/content deduplication fixes.
+
+# 2.29.0
+
+- Fixes the live Full ZIP downloader still using the old 12-second per-file budget despite the 2.28.0 recovery changes.
+- Raises the active attachment request timeout to 30 seconds and the per-file recovery budget to 120 seconds.
+- Uses a 300-second budget for video attachments.
+- Raises the normal per-file archive limit from 48 MB to 192 MB for larger application/source ZIPs and EXE artifacts.
+- Downloads attachment candidates serially to avoid two large ChatGPT sandbox downloads timing out each other.
+- Keeps the existing file-route order, content deduplication, stable labels, fail-open archive behavior, and 640 MB total asset budget.
+- No interactive file-card clicks or background download loops are introduced.
+
+# 2.28.0
+
+- Keeps the 2.27.0 cross-message SHA-256 deduplication and stable attachment labels.
+- Preserves the 2.26.0 attachment route order, but skips redundant full-conversation enrichment when an exact sandbox path is already known.
+- Raises the normal per-file recovery budget from 14s to 22s and request timeout from 4.5s to 6s for slower ChatGPT attachment endpoints.
+- Raises the video recovery budget to 120s.
+- No new interactive download clicks, blobs/chunks, or background network loops are introduced.
+
 # Changelog
+
+## 2.27.0 - 2026-08-24
+
+- Fixed cross-message attachment deduplication: byte-identical files are now SHA-256 matched across the full selected export, not only inside one message.
+- Keeps every message-level attachment reference while storing one canonical binary in the ZIP, so duplicate files no longer appear as `-2`, `-3`, and similar copies.
+- Fixed contaminated attachment labels from ChatGPT file cards: labels containing a different filename or UI text such as “Document / Open file” now fall back to the real captured filename.
+- Added diagnostics for deduplicated binary storage and preserved attachment references.
+- Preserved the 2.26.0 large-video limits, exact file identity matching, progress UI, cancellation, fail-open ZIP behavior, and Project memory features.
 
 ## 2.26.0 - 2026-08-23
 

@@ -304,6 +304,7 @@ function buildPortablePackage(payload, capturedAssets, jsonFilename) {
   const usedPaths = new Set();
   const assetManifest = [];
   const assetsByMessage = new Map();
+  const dedupePaths = new Map();
 
   const uniquePath = (directory, rawName) => {
     const safeName = sanitizePackageFilename(rawName || 'file.bin');
@@ -326,14 +327,25 @@ function buildPortablePackage(payload, capturedAssets, jsonFilename) {
 
     if (asset.included && asset.dataUrl) {
       try {
-        const bytes = decodeDataUrl(asset.dataUrl);
-        const directory = asset.type === 'image' ? 'assets' : 'attachments';
-        const path = uniquePath(directory, asset.filename);
-        files.push({ name: path, data: bytes });
-        manifestItem.path = path;
-        manifestItem.size = bytes.length;
-        if (!assetsByMessage.has(asset.messageIndex)) assetsByMessage.set(asset.messageIndex, []);
-        assetsByMessage.get(asset.messageIndex).push({ ...manifestItem, included: true });
+        const dedupeKey = String(asset.dedupeContentKey || '');
+        const existing = dedupeKey ? dedupePaths.get(dedupeKey) : null;
+        if (existing) {
+          manifestItem.path = existing.path;
+          manifestItem.size = Number(asset.size || existing.size || 0);
+          manifestItem.deduplicated = true;
+          if (!assetsByMessage.has(asset.messageIndex)) assetsByMessage.set(asset.messageIndex, []);
+          assetsByMessage.get(asset.messageIndex).push({ ...manifestItem, included: true });
+        } else {
+          const bytes = decodeDataUrl(asset.dataUrl);
+          const directory = asset.type === 'image' ? 'assets' : 'attachments';
+          const path = uniquePath(directory, asset.filename);
+          files.push({ name: path, data: bytes });
+          manifestItem.path = path;
+          manifestItem.size = bytes.length;
+          if (dedupeKey) dedupePaths.set(dedupeKey, { path, size:bytes.length });
+          if (!assetsByMessage.has(asset.messageIndex)) assetsByMessage.set(asset.messageIndex, []);
+          assetsByMessage.get(asset.messageIndex).push({ ...manifestItem, included: true });
+        }
       } catch (error) {
         manifestItem.included = false;
         manifestItem.reason = `Could not encode the captured file: ${String(error?.message || error)}`;
@@ -397,7 +409,8 @@ function buildPortablePackage(payload, capturedAssets, jsonFilename) {
       source: packagePayload.source,
       messageCount: packagePayload.messageCount,
       selectedCount: packagePayload.selectedCount,
-      includedAssets: assetManifest.filter((item) => item.included && item.path).length,
+      includedAssets: new Set(assetManifest.filter((item) => item.included && item.path).map((item) => item.path)).size,
+      includedReferences: assetManifest.filter((item) => item.included && item.path).length,
       skippedAssets: assetManifest.filter((item) => !item.included).length,
       diagnostics: packagePayload.exportDiagnostics || {},
       assets: assetManifest
@@ -410,7 +423,7 @@ function buildPortablePackage(payload, capturedAssets, jsonFilename) {
       data: encodeText([
         'Files detected in the ChatGPT conversation but not captured into this archive:',
         '',
-        ...missingAssets.map((item, index) => `${index + 1}. ${item.filename || item.label || 'unnamed file'}\n   Message: ${Number.isInteger(Number(item.messageIndex)) && Number(item.messageIndex) >= 0 ? Number(item.messageIndex) + 1 : 'unknown'}\n   Reason: ${item.reason || 'Unknown reason'}`)
+        ...missingAssets.map((item, index) => `${index + 1}. ${item.filename || item.label || 'unnamed file'}\n   Message: ${Number.isInteger(Number(item.messageIndex)) && Number(item.messageIndex) >= 0 ? Number(item.messageIndex) + 1 : 'unknown'}\n   Status: ${item.availabilityStatus || 'unavailable'}\n   Retry recommended: ${item.retryRecommended === true ? 'yes' : 'no'}\n   Reason: ${item.reason || 'Unknown reason'}`)
       ].join('\n'))
     });
   }
@@ -425,12 +438,13 @@ function buildPortablePackage(payload, capturedAssets, jsonFilename) {
       'Captured images are stored in assets/. Captured attachments are stored in attachments/.',
       'manifest.json lists every detected file and explains why a file was skipped when ChatGPT did not expose reusable bytes.',
       '',
-      `Included assets: ${assetManifest.filter((item) => item.included && item.path).length}`,
+      `Included assets: ${new Set(assetManifest.filter((item) => item.included && item.path).map((item) => item.path)).size}`,
+      `Included references: ${assetManifest.filter((item) => item.included && item.path).length}`,
       `Skipped assets: ${assetManifest.filter((item) => !item.included).length}`
     ].join('\n'))
   });
 
-  const includedAssets = assetManifest.filter((item) => item.included && item.path).length;
+  const includedAssets = new Set(assetManifest.filter((item) => item.included && item.path).map((item) => item.path)).size;
   const skippedAssets = assetManifest.filter((item) => !item.included).length;
   return {
     filename: `${baseName}-package.zip`,
