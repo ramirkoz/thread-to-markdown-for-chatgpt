@@ -1,3 +1,0 @@
-bea09068c8197b53640344cdfd108fa38fcc76267445a344296edd5b14422b17  GPT-Project-Memory-Tools-2.32.1.zip
-fcff23a977b23e1e98746289360c35abe689ca61297a77181d7ebb70a1afb892  GPT-Project-Memory-Tools-2.32.1-source.zip
-bf3a99e2cf8e605e4c6010654dc53d552f25cea1a126cadef7fc68d4b45e9129  GPT-Project-Memory-Tools-2.32.1-LOCAL-TEST-REPORT.md
