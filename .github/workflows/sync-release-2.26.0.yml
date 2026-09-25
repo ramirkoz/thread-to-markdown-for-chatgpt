@@ -23,10 +23,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          curl -L --fail --retry 5 --retry-delay 2 'https://drive.usercontent.google.com/download?id=1K4Un2GFdgA2UTkl2Hl8Yzob6xfAh3nui&export=download&confirm=t' -o /tmp/GPT-Project-Memory-Tools-2.32.1.zip
-          curl -L --fail --retry 5 --retry-delay 2 'https://drive.usercontent.google.com/download?id=1EjOGXnjMyFwT6HtbvjVYGksW-m79vALC&export=download&confirm=t' -o /tmp/GPT-Project-Memory-Tools-2.32.1-source.zip
-          curl -L --fail --retry 5 --retry-delay 2 'https://drive.usercontent.google.com/download?id=1W6t59sP3dwQZwqPIz--oQwNcqyORRy8U&export=download&confirm=t' -o /tmp/GPT-Project-Memory-Tools-2.32.1-LOCAL-TEST-REPORT.md
-          curl -L --fail --retry 5 --retry-delay 2 'https://drive.usercontent.google.com/download?id=1OfcYZzYMZeumbDn09qFqyf0uku9GR1tU&export=download&confirm=t' -o /tmp/SHA256SUMS.txt
+          base64 -d .release-staging/GPT-Project-Memory-Tools-2.32.1.zip.b64 > /tmp/GPT-Project-Memory-Tools-2.32.1.zip
+          base64 -d .release-staging/GPT-Project-Memory-Tools-2.32.1-source.zip.b64 > /tmp/GPT-Project-Memory-Tools-2.32.1-source.zip
+          cp .release-staging/GPT-Project-Memory-Tools-2.32.1-LOCAL-TEST-REPORT.md /tmp/GPT-Project-Memory-Tools-2.32.1-LOCAL-TEST-REPORT.md
+          cp .release-staging/SHA256SUMS.txt /tmp/SHA256SUMS.txt
 
           echo 'bea09068c8197b53640344cdfd108fa38fcc76267445a344296edd5b14422b17  /tmp/GPT-Project-Memory-Tools-2.32.1.zip' | sha256sum -c -
           echo 'fcff23a977b23e1e98746289360c35abe689ca61297a77181d7ebb70a1afb892  /tmp/GPT-Project-Memory-Tools-2.32.1-source.zip' | sha256sum -c -
